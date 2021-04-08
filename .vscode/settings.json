@@ -1,0 +1,39 @@
+{
+    "cSpell.words": [
+        "codelyzer",
+    ],
+    "cSpell.ignorePaths": [
+        "**/package-lock.json",
+        "**/node_modules/**",
+        "**/vscode-extension/**",
+        "**/.git/objects/**",
+        ".vscode",
+        ".vscode-insiders",
+        "src/environments/firebaseConfig.ts"
+    ],
+    "eslint.workingDirectories": [
+        {
+            "directory": "webapp",
+            "changeProcessCWD": true
+        }
+    ],
+    "files.associations": {
+        "database.rules.json": "jsonc",
+        "firebase.json": "jsonc",
+        "firestore.*.json": "jsonc",
+        ".firebaserc": "jsonc"
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "webapp/.firebase": true,
+        "webapp/node_modules": true,
+        "webapp/*.log": true,
+        "webapp/functions/lib": true,
+        "webapp/functions/node_modules": true,
+    },
+    "terminal.integrated.cwd": "webapp",
+}
