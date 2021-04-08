@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from './services/auth.service';
 
 @Component({
     selector: 'app-root',
@@ -6,5 +7,15 @@ import { Component } from '@angular/core';
     styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-    title = 'webapp';
+    title = 'Patchwork doodle';
+
+    constructor(public authService: AuthService) { }
+
+    async loginClick(): Promise<void> {
+        await this.authService.loginAnonymously();
+    }
+
+    async logoutClick(): Promise<void> {
+        await this.authService.logout();
+    }
 }

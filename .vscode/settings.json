@@ -3,7 +3,8 @@
         "codelyzer",
         "dbmodel",
         "devall",
-        "firestore"
+        "firestore",
+        "predeploy"
     ],
     "cSpell.ignorePaths": [
         "**/package-lock.json",

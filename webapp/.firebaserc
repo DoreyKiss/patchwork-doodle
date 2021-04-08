@@ -1,5 +1,14 @@
 {
-    "projects": {
-        "default": "patchwork-doodle"
+  "projects": {
+    "default": "patchwork-doodle"
+  },
+  "targets": {
+    "patchwork-doodle": {
+      "hosting": {
+        "webapp": [
+          "patchwork-doodle"
+        ]
+      }
     }
+  }
 }

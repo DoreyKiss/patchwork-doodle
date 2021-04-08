@@ -13,11 +13,21 @@
         ]
     },
     "hosting": {
-        "public": "dist",
+        "target": "webapp",
+        "public": "dist/webapp",
         "ignore": [
-            "firebase.json",
-            "**/.*",
-            "**/node_modules/**"
+            "**/.*"
+        ],
+        "headers": [
+            {
+                "source": "*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].+(css|js)",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "public,max-age=31536000,immutable"
+                    }
+                ]
+            }
         ],
         "rewrites": [
             {
@@ -42,9 +52,6 @@
         "hosting": {
             "port": 5000
         },
-        // "pubsub": {
-        //     "port": 8085
-        // },
         "ui": {
             "enabled": true
         }
