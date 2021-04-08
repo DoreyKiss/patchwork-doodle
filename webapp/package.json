@@ -2,6 +2,10 @@
     "name": "webapp",
     "version": "0.0.0",
     "scripts": {
+        "dev": "SET EMULATED=1* && firebase emulators:start",
+        "dev2": "ng build --watch",
+        "dev3": "npm run --prefix functions dev",
+        "devall": "wt -d . cmd /k \"npm run dev\" `; split-pane -d . -V cmd /k \"npm run dev2\" `; split-pane -d . -V cmd /k \"npm run dev3\"",
         "ng": "ng",
         "start": "ng serve",
         "build": "ng build",

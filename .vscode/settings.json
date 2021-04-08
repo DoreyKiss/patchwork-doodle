@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "codelyzer",
+        "devall",
+        "firestore"
     ],
     "cSpell.ignorePaths": [
         "**/package-lock.json",
@@ -36,4 +38,28 @@
         "webapp/functions/node_modules": true,
     },
     "terminal.integrated.cwd": "webapp",
+    "restoreTerminals.terminals": [
+        {
+            "splitTerminals": [
+                {
+                    "name": "emu",
+                    "commands": [
+                        "cd webapp; npm run dev" // firebase emulators
+                    ]
+                },
+                {
+                    "name": "client",
+                    "commands": [
+                        "cd webapp; npm run dev2" // watch-build client
+                    ]
+                },
+                {
+                    "name": "func",
+                    "commands": [
+                        "cd webapp; npm run dev3" // watch-build functions
+                    ]
+                }
+            ]
+        }
+    ],
 }
