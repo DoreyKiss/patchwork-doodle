@@ -1,7 +1,7 @@
 Hello Patchwork-doodle!<br />
 
 <ng-container *ngIf="this.authService.user;else loggedOut">
-    Hello User {{this.authService.user?.uid}}!
+    Hello User {{this.authService.user.displayName}} - {{this.authService.user?.uid}}!
 </ng-container>
 <ng-template #loggedOut>
     Not logged in.

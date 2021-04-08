@@ -1,6 +1,8 @@
 import { APP_INITIALIZER, NgModule, Provider } from '@angular/core';
 import { AngularFireModule } from '@angular/fire';
 import { AngularFireAuthModule } from '@angular/fire/auth';
+import { AngularFireDatabaseModule } from '@angular/fire/database';
+import { AngularFireAnalyticsModule, UserTrackingService } from '@angular/fire/analytics';
 import { BrowserModule } from '@angular/platform-browser';
 import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 import { firebaseConfig } from 'src/environments/firebase.config';
@@ -50,9 +52,14 @@ const Logger = LoggerModule.forRoot({
         HttpClientModule,
         Logger,
         AngularFireModule.initializeApp(firebaseConfig),
-        AngularFireAuthModule
+        AngularFireAuthModule,
+        AngularFireDatabaseModule,
+        AngularFireAnalyticsModule
     ],
-    providers: [ServiceInitializer],
+    providers: [
+        ServiceInitializer,
+        UserTrackingService
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule { }

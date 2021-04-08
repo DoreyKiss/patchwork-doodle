@@ -1,10 +1,11 @@
 import { Injectable, NgZone } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { DbUser } from 'functions/src/shared/dbmodel';
+import { DbPath } from 'functions/src/shared/helpers/databaseHelper';
 import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
-// import { DatabaseService } from './database.service';
+import { DatabaseService } from './database.service';
 
 export type User = DbUser & {
     uid: string;
@@ -19,7 +20,7 @@ export class AuthService {
 
     constructor(
         private auth: AngularFireAuth,
-        // private databaseService: DatabaseService,
+        private databaseService: DatabaseService,
         private zone: NgZone,
         private log: NGXLogger
     ) { }
@@ -63,9 +64,9 @@ export class AuthService {
             if (user) {
                 // logged in
                 this.user = { uid: user.uid, rooms: {} };
-                // if (this.user.uid) {
-                //     this.listenToDbChanges(this.user.uid);
-                // }
+                if (this.user.uid) {
+                    this.listenToDbChanges(this.user.uid);
+                }
             } else {
                 // not logged in
                 this.user = undefined;
@@ -80,21 +81,21 @@ export class AuthService {
         this.dbSubscription = undefined;
     }
 
-    // private listenToDbChanges(userId: string): void {
-    //     this.unsubscribeFromDbChanges();
+    private listenToDbChanges(userId: string): void {
+        this.unsubscribeFromDbChanges();
 
-    //     // this.dbSubscription = this.databaseService.rt
-    //     //     .object<DbUser>(DbPath.user(userId))
-    //     //     .valueChanges()
-    //     //     .subscribe(value => this.zone.run(() => {
-    //     //         if (!this.user) {
-    //     //             console.warn('DB update received for not logged-out user.');
-    //     //             return;
-    //     //         }
-    //     //         if (value) {
-    //     //             this.user = { uid: this.user.uid, ...value };
-    //     //         }
-    //     //         this.userChanged.next(this.user);
-    //     //     }));
-    // }
+        this.dbSubscription = this.databaseService.rt
+            .object<DbUser>(DbPath.user(userId))
+            .valueChanges()
+            .subscribe(value => this.zone.run(() => {
+                if (!this.user) {
+                    console.warn('DB update received for not logged-out user.');
+                    return;
+                }
+                console.log(value);
+                if (value) {
+                    this.user = { uid: this.user.uid, ...value };
+                }
+            }));
+    }
 }
