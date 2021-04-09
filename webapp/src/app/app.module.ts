@@ -1,46 +1,15 @@
-import { APP_INITIALIZER, NgModule, Provider } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
+import { NgModule } from '@angular/core';
 import { AngularFireModule } from '@angular/fire';
-import { AngularFireAuthModule } from '@angular/fire/auth';
 import { AngularFireDatabaseModule } from '@angular/fire/database';
-import { AngularFireAnalyticsModule, UserTrackingService } from '@angular/fire/analytics';
 import { BrowserModule } from '@angular/platform-browser';
-import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
 import { firebaseConfig } from 'src/environments/firebase.config';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { AuthService } from './services/auth.service';
-import { environment } from '../environments/environment';
-import { HttpClientModule } from '@angular/common/http';
-
-function initializeServices(
-    authService: AuthService,
-    // functionsService: FunctionsService,
-    // translate: TranslateService,
-    // cookies: StorageService
-) {
-    return async (): Promise<void> => {
-        // translate.setDefaultLang('en');
-        const promises = [
-            // translate.use(cookies.uiLanguage).toPromise(),
-            // functionsService._init(),
-            authService._init()
-        ];
-        await Promise.all(promises);
-    };
-}
-
-const ServiceInitializer: Provider = {
-    provide: APP_INITIALIZER,
-    useFactory: initializeServices,
-    deps: [AuthService /*, FunctionsService, TranslateService, StorageService*/],
-    multi: true
-};
-
-const Logger = LoggerModule.forRoot({
-    enableSourceMaps: !environment.production,
-    level: environment.production ? NgxLoggerLevel.ERROR : NgxLoggerLevel.DEBUG,
-    timestampFormat: 'yy-MM-dd HH:mm:ss'
-});
+import { AngularFireEmulatorProviders } from './providers/angularfire-emulator.provider';
+import { FirebaseAuthProvider } from './providers/firebase-auth.provider';
+import { Logger } from './providers/logger.provider';
+import { ServiceInitializer } from './providers/service-initializer.provider';
 
 @NgModule({
     declarations: [
@@ -52,13 +21,12 @@ const Logger = LoggerModule.forRoot({
         HttpClientModule,
         Logger,
         AngularFireModule.initializeApp(firebaseConfig),
-        AngularFireAuthModule,
         AngularFireDatabaseModule,
-        AngularFireAnalyticsModule
     ],
     providers: [
         ServiceInitializer,
-        UserTrackingService
+        FirebaseAuthProvider,
+        ...AngularFireEmulatorProviders
     ],
     bootstrap: [AppComponent]
 })

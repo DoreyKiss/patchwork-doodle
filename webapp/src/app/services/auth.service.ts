@@ -1,11 +1,13 @@
+import firebase from 'firebase/app';
+import 'firebase/auth';
 import { Injectable, NgZone } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/auth';
 import { DbUser } from 'functions/src/shared/dbmodel';
 import { DbPath } from 'functions/src/shared/helpers/databaseHelper';
 import { NGXLogger } from 'ngx-logger';
 import { Subscription } from 'rxjs';
-import { environment } from 'src/environments/environment';
 import { DatabaseService } from './database.service';
+import { FIREBASE_AUTH_TOKEN } from '../providers/firebase-auth.provider';
+import { Inject } from '@angular/core';
 
 export type User = DbUser & {
     uid: string;
@@ -19,18 +21,12 @@ export class AuthService {
     private dbSubscription?: Subscription;
 
     constructor(
-        private auth: AngularFireAuth,
         private databaseService: DatabaseService,
         private zone: NgZone,
-        private log: NGXLogger
-    ) { }
-
-    async _init(): Promise<void> {
-        if (!environment.production) {
-            await this.auth.useEmulator('http://localhost:9099/');
-        }
-
-        await this.auth.onAuthStateChanged({
+        private log: NGXLogger,
+        @Inject(FIREBASE_AUTH_TOKEN) private auth: firebase.auth.Auth
+    ) {
+        this.auth.onAuthStateChanged({
             next: user => this.onAuthStateChanged(user),
             error: (err) => console.error('Authentication error', err),
             complete: () => { },
@@ -58,7 +54,7 @@ export class AuthService {
         return this.auth.signOut();
     }
 
-    private onAuthStateChanged(user: firebase.default.User) {
+    private onAuthStateChanged(user: firebase.User) {
         this.log.info('START auth state changed', user);
         this.zone.run(() => {
             if (user) {
