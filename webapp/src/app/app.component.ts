@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from './services/auth.service';
+import { FunctionsService } from './services/functions.service';
 
 @Component({
     selector: 'app-root',
@@ -9,7 +10,10 @@ import { AuthService } from './services/auth.service';
 export class AppComponent {
     title = 'Patchwork doodle';
 
-    constructor(public authService: AuthService) { }
+    constructor(
+        public authService: AuthService,
+        private functionsService: FunctionsService
+    ) { }
 
     async loginClick(): Promise<void> {
         await this.authService.loginAnonymously();
@@ -17,5 +21,14 @@ export class AppComponent {
 
     async logoutClick(): Promise<void> {
         await this.authService.logout();
+    }
+
+    async createRoomClick(): Promise<void> {
+        const createRoomResult = await this.functionsService.createRoom({
+            name: 'test room',
+            type: 'patchwork_doodle'
+        }).toPromise();
+
+        console.log(createRoomResult);
     }
 }
