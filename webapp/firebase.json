@@ -13,6 +13,9 @@
         ]
     },
     "hosting": {
+        "predeploy": [
+            "npm run build-prod"
+        ],
         "target": "webapp",
         "public": "dist/webapp",
         "ignore": [

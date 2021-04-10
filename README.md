@@ -33,5 +33,7 @@ party.. disco disco, party paarty.....quarantine
 
 - Ensure that no emulator or watch+build is running.
 - `cd webapp`
-- `ng build --prod`
 - `firebase deploy`
+  - Use `firebase deploy --only database` to deploy just the database rules.
+  - Use `firebase deploy --only functions` to deploy just the back-end functions.
+  - Use `firebase deploy --only hosting` to deploy just the front-end.
