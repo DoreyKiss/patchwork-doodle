@@ -4,7 +4,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { DbUser } from 'functions/src/shared/dbmodel';
 import { DbPath } from 'functions/src/shared/helpers/databaseHelper';
 import { NGXLogger } from 'ngx-logger';
-import { Subscription } from 'rxjs';
+import { ReplaySubject, Subscription } from 'rxjs';
 import { DatabaseService } from './database.service';
 import { FIREBASE_AUTH_TOKEN } from '../providers/firebase-auth.provider';
 import { Inject } from '@angular/core';
@@ -18,6 +18,7 @@ export type User = DbUser & {
 })
 export class AuthService {
     user?: User;
+    userChanged = new ReplaySubject<User>(1);
     private dbSubscription?: Subscription;
 
     constructor(
@@ -68,6 +69,7 @@ export class AuthService {
                 this.user = undefined;
                 this.unsubscribeFromDbChanges();
             }
+            this.userChanged.next(this.user);
         });
         this.log.info('END auth changed', this.user);
     }
@@ -91,6 +93,7 @@ export class AuthService {
                 console.log(value);
                 if (value) {
                     this.user = { uid: this.user.uid, ...value };
+                    this.userChanged.next(this.user);
                 }
             }));
     }

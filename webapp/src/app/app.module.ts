@@ -10,10 +10,14 @@ import { AngularFireEmulatorProviders } from './providers/angularfire-emulator.p
 import { FirebaseAuthProvider } from './providers/firebase-auth.provider';
 import { Logger } from './providers/logger.provider';
 import { ServiceInitializer } from './providers/service-initializer.provider';
+import { RoomBaseComponent } from './components/room-base/room-base.component';
+import { LoginComponent } from './components/login/login.component';
 
 @NgModule({
     declarations: [
-        AppComponent
+        AppComponent,
+        RoomBaseComponent,
+        LoginComponent,
     ],
     imports: [
         BrowserModule,

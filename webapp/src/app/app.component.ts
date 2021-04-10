@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { FunctionsService } from './services/functions.service';
 
@@ -12,6 +13,7 @@ export class AppComponent {
 
     constructor(
         public authService: AuthService,
+        private router: Router,
         private functionsService: FunctionsService
     ) { }
 
@@ -24,11 +26,14 @@ export class AppComponent {
     }
 
     async createRoomClick(): Promise<void> {
-        const createRoomResult = await this.functionsService.createRoom({
+        const response = await this.functionsService.createRoom({
             name: 'test room',
             type: 'patchwork_doodle'
         }).toPromise();
 
-        console.log(createRoomResult);
+        if (response.success) {
+            await this.router.navigate([`${response.type}/${response.id}`]);
+        }
+        console.log(response);
     }
 }
