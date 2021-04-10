@@ -6,12 +6,13 @@ import { BrowserModule } from '@angular/platform-browser';
 import { firebaseConfig } from 'src/environments/firebase.config';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { LoginComponent } from './components/login/login.component';
+import { RoomBaseComponent } from './components/room-base/room-base.component';
 import { AngularFireEmulatorProviders } from './providers/angularfire-emulator.provider';
 import { FirebaseAuthProvider } from './providers/firebase-auth.provider';
-import { Logger } from './providers/logger.provider';
+import { LoggerModule } from './providers/logger-module.provider';
 import { ServiceInitializer } from './providers/service-initializer.provider';
-import { RoomBaseComponent } from './components/room-base/room-base.component';
-import { LoginComponent } from './components/login/login.component';
+import { TranslateModule } from './providers/translate-module.provider';
 
 @NgModule({
     declarations: [
@@ -23,7 +24,8 @@ import { LoginComponent } from './components/login/login.component';
         BrowserModule,
         AppRoutingModule,
         HttpClientModule,
-        Logger,
+        LoggerModule,
+        TranslateModule,
         AngularFireModule.initializeApp(firebaseConfig),
         AngularFireDatabaseModule,
     ],

@@ -1,0 +1,8 @@
+{
+    "home": {
+        "helloWithNameAndId": "Szia {{name}} ({{id}})!",
+        "login": "Bejelentkezés",
+        "logout": "Kijelentkezés",
+        "createRoom": "Új szoba"
+    }
+}

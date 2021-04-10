@@ -2,11 +2,13 @@
     "cSpell.words": [
         "angularfire",
         "appspot",
+        "attranslate",
         "codelyzer",
         "dbmodel",
         "devall",
         "firestore",
-        "predeploy"
+        "predeploy",
+        "webstorage"
     ],
     "cSpell.ignorePaths": [
         "**/package-lock.json",
@@ -15,7 +17,8 @@
         "**/.git/objects/**",
         ".vscode",
         ".vscode-insiders",
-        "src/environments/firebaseConfig.ts"
+        "src/environments/firebaseConfig.ts",
+        "webapp/src/assets/i18n/hu.json"
     ],
     "eslint.workingDirectories": [
         {

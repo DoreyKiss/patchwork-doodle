@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { FunctionsService } from './services/functions.service';
+import { LocalStorageService } from './services/local-storage.service';
 
 @Component({
     selector: 'app-root',
@@ -13,6 +15,8 @@ export class AppComponent {
 
     constructor(
         public authService: AuthService,
+        private translateService: TranslateService,
+        private localStorageService: LocalStorageService,
         private router: Router,
         private functionsService: FunctionsService
     ) { }
@@ -35,5 +39,10 @@ export class AppComponent {
             await this.router.navigate([`${response.type}/${response.id}`]);
         }
         console.log(response);
+    }
+
+    async changeLanguage(code: string): Promise<void> {
+        await this.translateService.use(code).toPromise();
+        this.localStorageService.uiLanguage = code;
     }
 }

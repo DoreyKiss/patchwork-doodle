@@ -1,16 +1,42 @@
-Hello Patchwork-doodle!<br />
+Language:
+<button (click)="changeLanguage('en')">en</button>
+<button (click)="changeLanguage('hu')">hu</button><br />
 
-<ng-container *ngIf="this.authService.user;else loggedOut">
-    Hello User {{this.authService.user.displayName}} - {{this.authService.user?.uid}}!
+<h1>Hello Patchwork-doodle!</h1>
+
+<ng-container *ngIf="this.authService.user; else loggedOut">
+    <!-- Translate option 1 -->
+    <!-- {{ 'home.helloWithNameAndId' | translate: ({
+    name: this.authService.user.displayName || 'Player',
+    id: this.authService.user?.uid
+    }) }} -->
+
+    <!-- Translate option 2 -->
+    <div translate [translateParams]="{
+        name: this.authService.user.displayName || 'Player',
+        id: this.authService.user?.uid}">
+        home.helloWithNameAndId
+    </div>
+
+    <!-- Translate option 3 -->
+    <!-- <div [translate]="'home.helloWithNameAndId'" [translateParams]="{
+            name: this.authService.user.displayName || 'Player',
+            id: this.authService.user?.uid}">
+    </div> -->
+
+    <!-- Translate option 4 (needed when translation contains html tags) -->
+    <!-- <div [innerHTML]="'home.helloWithNameAndId' | translate: ({
+        name: this.authService.user.displayName || 'Player',
+        id: this.authService.user?.uid})"></div> -->
 </ng-container>
 <ng-template #loggedOut>
     Not logged in.
 </ng-template>
 
 <br />
-<button (click)="loginClick()">Log in</button>
-<button (click)="logoutClick()">Log out</button>
+<button (click)="loginClick()" translate>home.login</button>
+<button (click)="logoutClick()" translate>home.logout</button>
 
-<br />
-<button (click)="createRoomClick()">Create room</button>
+<br /><br />
+<button (click)="createRoomClick()">{{'home.createRoom' | translate}}</button>
 <router-outlet></router-outlet>

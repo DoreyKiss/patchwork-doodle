@@ -1,17 +1,15 @@
+import { TranslateService } from '@ngx-translate/core';
 import { Provider, APP_INITIALIZER } from '@angular/core';
+import { LocalStorageService } from '../services/local-storage.service';
 
 function initializeServices(
-    // authService: AuthService,
-    // functionsService: FunctionsService,
-    // translate: TranslateService,
-    // cookies: StorageService
+    translate: TranslateService,
+    storage: LocalStorageService
 ) {
     return async (): Promise<void> => {
-        // translate.setDefaultLang('en');
+        translate.setDefaultLang('en');
         const promises: Promise<void>[] = [
-            // translate.use(cookies.uiLanguage).toPromise(),
-            // functionsService._init(),
-            // authService._init()
+            translate.use(storage.uiLanguage).toPromise(),
         ];
         await Promise.all(promises);
     };
@@ -20,6 +18,6 @@ function initializeServices(
 export const ServiceInitializer: Provider = {
     provide: APP_INITIALIZER,
     useFactory: initializeServices,
-    deps: [/*AuthService , FunctionsService, TranslateService, StorageService*/],
+    deps: [TranslateService, LocalStorageService],
     multi: true
 };

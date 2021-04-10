@@ -1,0 +1,8 @@
+{
+    "home": {
+        "helloWithNameAndId": "Hello {{name}} ({{id}})!",
+        "login": "Log in",
+        "logout": "Log out",
+        "createRoom": "Create room"
+    }
+}
