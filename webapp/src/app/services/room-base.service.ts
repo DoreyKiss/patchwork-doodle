@@ -44,7 +44,7 @@ export class RoomBaseService {
     async joinRoom(roomDbId: string): Promise<boolean> {
         this.log.info('Join room');
         this.roomDbId = roomDbId;
-        let { success: success } = await this.functions.joinRoom({ databaseId: roomDbId }).toPromise();
+        let { success } = await this.functions.joinRoom({ databaseId: roomDbId }).toPromise();
         if (success) {
             success = await this.addPresence();
         }
@@ -92,25 +92,31 @@ export class RoomBaseService {
         return new Promise<boolean>(resolve => {
             if (!this.auth.user) {
                 this.log.error('User info not available!');
-                resolve(false); return;
+                return resolve(false);
             }
             if (!this.roomDbId) {
                 this.log.error('Room id not available!');
-                resolve(false); return;
+                return resolve(false);
             }
             if (this.currentConn) {
                 this.log.error('There is an existing connection already!');
-                resolve(false); return;
+                return resolve(false);
             }
 
             this.log.info('Adding presence...');
             const connectionsRef = this.db.database.ref(DbPath.roomConnection(this.roomDbId, this.auth.user.uid));
             const connectedRef = this.db.database.ref('.info/connected');
             connectedRef.on('value', async snapshot => {
+                this.log.info(`.info/connected = ${snapshot.val() as string}`);
                 if (snapshot.val() !== true) {
-                    resolve(false);
+                    // Do not do anything while disconnected from db.
+                    // TODO Probably some timeout is needed in case the app is offline.
                     return;
                 }
+
+                // We are connected, so we do not need connected events anymore.
+                // Either currentConn is set up to handle it, or we cannot connect to the room anyway.
+                connectedRef.off();
 
                 try {
                     this.currentConn = await connectionsRef.push();
