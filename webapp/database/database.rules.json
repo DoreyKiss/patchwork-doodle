@@ -1,6 +1,54 @@
 {
-  "rules": {
-    ".read": "now < 1620079200000",  // 2021-5-4
-    ".write": "now < 1620079200000",  // 2021-5-4
-  }
+    "rules": {
+        ".read": false,
+        ".write": false,
+        // ========== Users ==========
+        "users": {
+            "$uid": {
+                ".read": "$uid === auth.uid",
+                "displayName": {
+                    ".write": "$uid === auth.uid",
+                    ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length < 64"
+                },
+                "$other": {
+                    ".validate": false
+                }
+            }
+        },
+        // ========== Rooms ==========
+        "rooms": {
+            "$roomId": {
+                "connections": {
+                    "$userId": {
+                        // Allow read their own data
+                        ".read": "$userId === auth.uid",
+                        // Allow write if user is part of the room
+                        ".write": "$userId === auth.uid && data.parent().parent().exists() && root.child('rooms/'+$roomId+'/meta/users/'+auth.uid).exists()",
+                        // Only allow db-generated ids as new value
+                        "$connectionId": {
+                            ".validate": "$connectionId.length === 20 && newData.val() === true"
+                        }
+                    }
+                },
+                "meta": {
+                    // Room metadata, allow read if user is part of the room
+                    ".read": "root.child('rooms/'+$roomId+'/meta/users/'+auth.uid).exists()"
+                },
+                // ========== Game state ==========
+                "private": {
+                    // Private game state, each user may read their own data
+                    "$userId": {
+                        ".read": "$userId === auth.uid"
+                    }
+                },
+                "internal": {
+                    // Internal game state, only handled by cloud functions
+                },
+                "public": {
+                    // Public game state, allow read if user is part of the room
+                    ".read": "root.child('rooms/'+$roomId+'/meta/users/'+auth.uid).exists()"
+                }
+            }
+        }
+    }
 }

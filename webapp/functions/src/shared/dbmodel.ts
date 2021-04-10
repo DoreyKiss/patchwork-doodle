@@ -13,21 +13,29 @@ export interface DbUser {
 }
 
 export interface DbRoom {
+    /** Information about the room itself. */
     meta: DbRoomMeta;
 
-    /** {userId: {connectionId: true}} */
+    /** 
+     * User presence.
+     * {userId: {connectionId: true}} 
+     * */
     connections: DbRoomConnections;
 
-    /** {userId: state} */
+    /**
+     * Private part of the game state for each user such as cards in hand.
+     * {userId: state} 
+     * */
     private: Record<string, DbPrivateState> | false;
+    /** Internal game state required by backend to actually run the game. */
     internal: DbInternalState | false;
+    /** Public game state which all connected users may see. */
     public: DbPrivateState | false;
 }
 
 export interface DbPrivateState { }
 
-export interface DbInternalState {
-}
+export interface DbInternalState { }
 
 export interface DbPublicState {
     step: string;
