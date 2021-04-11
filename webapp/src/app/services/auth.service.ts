@@ -1,13 +1,12 @@
+import { Inject, Injectable, NgZone } from '@angular/core';
 import firebase from 'firebase/app';
 import 'firebase/auth';
-import { Injectable, NgZone } from '@angular/core';
 import { DbUser } from 'functions/src/shared/dbmodel';
 import { DbPath } from 'functions/src/shared/helpers/databaseHelper';
 import { NGXLogger } from 'ngx-logger';
 import { ReplaySubject, Subscription } from 'rxjs';
-import { DatabaseService } from './database.service';
 import { FIREBASE_AUTH_TOKEN } from '../providers/firebase-auth.provider';
-import { Inject } from '@angular/core';
+import { DatabaseService } from './database.service';
 
 export type User = DbUser & {
     uid: string;
@@ -17,8 +16,17 @@ export type User = DbUser & {
     providedIn: 'root'
 })
 export class AuthService {
-    user?: User;
-    userChanged = new ReplaySubject<User>(1);
+    /**
+     * Represents the user's auth state. Possible values:
+     * - undefined: Auth process has not finished.
+     * - null: User is not currently logged in.
+     * - other: User is logged in.
+     */
+    user: User | null | undefined;
+
+    /** Represents the user's auth state over time. */
+    userSubject = new ReplaySubject<User | null>(1);
+
     private dbSubscription?: Subscription;
 
     constructor(
@@ -36,7 +44,7 @@ export class AuthService {
 
     async loginAnonymously(): Promise<boolean> {
         await this.auth.signInAnonymously();
-        return this.user !== undefined;
+        return !!this.user;
     }
 
     logout(): Promise<void> {
@@ -54,21 +62,25 @@ export class AuthService {
             .update({ displayName: newDisplayName });
     }
 
+    private setUser(user: User | null) {
+        this.user = user;
+        this.userSubject.next(this.user);
+    }
+
     private onAuthStateChanged(user: firebase.User) {
         this.log.info('START auth state changed', user);
         this.zone.run(() => {
             if (user) {
                 // logged in
-                this.user = { uid: user.uid, rooms: {} };
-                if (this.user.uid) {
-                    this.listenToDbChanges(this.user.uid);
+                this.setUser({ uid: user.uid, rooms: {} });
+                if (user.uid) {
+                    this.listenToDbChanges(user.uid);
                 }
             } else {
                 // not logged in
-                this.user = undefined;
+                this.setUser(null);
                 this.unsubscribeFromDbChanges();
             }
-            this.userChanged.next(this.user);
         });
         this.log.info('END auth changed', this.user);
     }
@@ -91,8 +103,7 @@ export class AuthService {
                 }
                 console.log(value);
                 if (value) {
-                    this.user = { uid: this.user.uid, ...value };
-                    this.userChanged.next(this.user);
+                    this.setUser({ uid: this.user.uid, ...value });
                 }
             }));
     }

@@ -43,4 +43,8 @@ Language:
 <br /><br />
 <button (click)="createRoom()">{{'home.createRoom' | translate}}</button>
 
-<router-outlet></router-outlet>
+<router-outlet *ngIf="authService.user !== undefined; else unknownAuthState">
+</router-outlet>
+<ng-template #unknownAuthState>
+    <h1>🐟 🐟 🐟</h1>
+</ng-template>

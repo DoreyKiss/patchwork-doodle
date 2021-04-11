@@ -53,13 +53,13 @@ export class RoomBaseComponent implements OnInit, OnDestroy {
         this.log.info('OnInit');
 
         // Require user logged in
-        const user = await this.auth.userChanged.pipe(take(1)).toPromise();
+        const user = await this.auth.userSubject.pipe(take(1)).toPromise();
         if (!user) {
             await this.redirectToLoginIfNeeded();
             return;
         }
         this.subscriptions.push(
-            this.auth.userChanged.subscribe(() => this.ngZone.run(() => void this.redirectToLoginIfNeeded()))
+            this.auth.userSubject.subscribe(() => this.ngZone.run(() => void this.redirectToLoginIfNeeded()))
         );
 
         // Require room id in path
