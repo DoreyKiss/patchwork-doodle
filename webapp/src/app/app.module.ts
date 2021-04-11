@@ -9,6 +9,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { RoomBaseComponent } from './components/room-base/room-base.component';
+import { PatchworkDoodleModule } from './games/patchwork-doodle/patchwork-doodle.module';
 import { AngularFireEmulatorProviders } from './providers/angularfire-emulator.provider';
 import { FirebaseAuthProvider } from './providers/firebase-auth.provider';
 import { LoggerModule } from './providers/logger-module.provider';
@@ -26,6 +27,7 @@ import { TranslateModule } from './providers/translate-module.provider';
         AppRoutingModule,
         HttpClientModule,
         FormsModule,
+        PatchworkDoodleModule,
         LoggerModule,
         TranslateModule,
         AngularFireModule.initializeApp(firebaseConfig),

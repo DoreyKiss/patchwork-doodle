@@ -6,7 +6,7 @@ import { NGXLogger } from 'ngx-logger';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AuthService } from 'src/app/services/auth.service';
-import { RoomBaseService } from 'src/app/services/room-base.service';
+import { ClientUser, RoomBaseService } from 'src/app/services/room-base.service';
 
 @Component({
     selector: 'app-room-base',
@@ -24,7 +24,7 @@ export class RoomBaseComponent implements OnInit, OnDestroy {
     roomId!: string;
     roomDbId!: string;
     roomType!: RoomType;
-    roomUsers = new BehaviorSubject<{ id: string, name: string; }[]>([]);
+    roomUsers = new BehaviorSubject<ClientUser[]>([]);
 
     /** Saved subscriptions to unsubscribe at ngOnDestroy. */
     protected subscriptions: Subscription[] = [];

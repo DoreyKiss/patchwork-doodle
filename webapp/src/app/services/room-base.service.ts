@@ -1,13 +1,18 @@
-import firebase from 'firebase';
 import { Injectable, Injector } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/database';
-import { DbRoomUsers } from 'functions/src/shared/dbmodel';
+import firebase from 'firebase';
+import { DbRoomConnections, DbRoomUser, DbRoomUsers } from 'functions/src/shared/dbmodel';
 import { DbPath } from 'functions/src/shared/helpers/databaseHelper';
 import { NGXLogger } from 'ngx-logger';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { AuthService } from './auth.service';
 import { DatabaseService } from './database.service';
 import { FunctionsService } from './functions.service';
+
+export type ClientUser = DbRoomUser & {
+    id: string;
+    isConnected: boolean;
+};
 
 @Injectable({
     providedIn: 'root'
@@ -19,7 +24,7 @@ export abstract class RoomBaseService {
     log: NGXLogger;
     functions: FunctionsService;
 
-    usersSubject = new BehaviorSubject<{ name: string, id: string; }[]>([]);
+    usersSubject = new BehaviorSubject<ClientUser[]>([]);
 
     private roomDbId?: string;
     private db: AngularFireDatabase;
@@ -76,16 +81,28 @@ export abstract class RoomBaseService {
 
     private subscribeToDb(roomDbId: string) {
         this.log.info('subscribeToDb');
-        const usersSubscription = this.db.object<DbRoomUsers>(DbPath.roomUsers(roomDbId))
-            .valueChanges()
-            .subscribe((users) => {
+        const usersSubscription = this.db
+            .object<DbRoomUsers>(DbPath.roomUsers(roomDbId))
+            .valueChanges();
+
+        const connectionSubscription = this.db
+            .object<DbRoomConnections>(DbPath.roomConnections(roomDbId))
+            .valueChanges();
+
+        const combinedUserSubscription = combineLatest([usersSubscription, connectionSubscription])
+            .subscribe(([users, connections]) => {
                 if (users) {
-                    this.usersSubject.next(Object.entries(users).map(x => ({ id: x[0], name: x[1].name })));
+                    this.usersSubject.next(Object.entries(users).map(([id, user]) => ({
+                        id,
+                        name: user.name,
+                        isConnected: (connections && connections[id] !== undefined) ?? false
+                    })));
                 } else {
                     this.usersSubject.next([]);
                 }
             });
-        this.subscriptions.push(usersSubscription);
+
+        this.subscriptions.push(combinedUserSubscription);
     }
 
     private addPresence(): Promise<boolean> {

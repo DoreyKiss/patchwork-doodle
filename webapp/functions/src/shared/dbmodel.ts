@@ -54,5 +54,7 @@ export interface DbRoomMeta {
     spectators: IndexGroup;
 }
 
-export type DbRoomUsers = Record<string, { name: string; }> | false;
+export type DbRoomUser = { name: string; };
+
+export type DbRoomUsers = Record<string, DbRoomUser> | false;
 export type DbRoomConnections = Record<string, IndexGroup> | false;

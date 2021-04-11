@@ -1,1 +1,8 @@
 <p>room works! id: {{this.roomId}}</p>
+
+<h3>Users</h3>
+<ul>
+    <li *ngFor="let user of roomUsers | async">
+        {{user.name}} - {{user.isConnected ? '✅' : '❌'}}
+    </li>
+</ul>
