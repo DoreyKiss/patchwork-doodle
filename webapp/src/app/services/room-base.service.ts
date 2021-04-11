@@ -65,7 +65,6 @@ export abstract class RoomBaseService {
 
     /**
      * Remove user presence from room.
-     * TODO Allow actually leaving the room.
      */
     async leaveRoom(): Promise<void> {
         this.log.info('Leave room');

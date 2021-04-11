@@ -1,11 +1,11 @@
 import * as admin from 'firebase-admin';
-import { DbRoom } from '../../shared/dbmodel';
+import { CommonGameSteps, DbRoom } from '../../shared/dbmodel';
+import { assertNever } from '../../shared/helpers/assertNever';
+import { DbPath } from '../../shared/helpers/databaseHelper';
+import { PatchworkDoodleAction } from '../../shared/patchworkDoodle/actions';
+import { PatchworkDoodleDbRoom, PwdStep } from '../../shared/patchworkDoodle/patchworkDoodleDbModel';
 import { RoomResponse } from '../../shared/requests';
 import { EMPTY_ERROR_RESPONSE, GameManagerBase } from '../gameManagerBase';
-import { PatchworkDoodleDbRoom, PwdStep } from '../../shared/patchworkDoodle/patchworkDoodleDbModel';
-import { assertNever } from '../../shared/helpers/assertNever';
-import { PatchworkDoodleAction } from '../../shared/patchworkDoodle/actions';
-import { DbPath } from '../../shared/helpers/databaseHelper';
 
 export class PatchworkDoodleGameManager extends GameManagerBase {
 
@@ -18,7 +18,7 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
                     boardSize: { width: 5, height: 5 },
                 },
             },
-            public: { step: PwdStep.lobby },
+            public: { step: CommonGameSteps.lobby },
             internal: false,
             private: false,
         };

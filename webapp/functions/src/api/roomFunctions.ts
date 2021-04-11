@@ -4,10 +4,11 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { nanoid } from 'nanoid';
 import { getGameManager } from '../game/gameManagerMapping';
-import { DbRoom, DbRoomUsers } from '../shared/dbmodel';
+import { CommonGameSteps, DbPublicState, DbRoom, DbRoomUsers } from '../shared/dbmodel';
 import { DbPath } from '../shared/helpers/databaseHelper';
 import { createRoomDatabaseId } from '../shared/helpers/roomHelper';
 import { CreateRoomRequest, CreateRoomResponse, JoinRoomRequest, JoinRoomResponse } from '../shared/requests';
+import { realtimeDatabaseId } from './config';
 const euFunctions = functions.region('europe-west1');
 
 /**
@@ -115,15 +116,21 @@ export const join = euFunctions.https.onCall(async (data: JoinRoomRequest, conte
 });
 
 /**
- * Handles user disconnect from a room. 
+ * Handles user disconnect from a room.
+ * Deletes user if the game is in the lobby step.
  */
-export const onUserDisconnect = euFunctions.database.ref('rooms/{roomDbId}/meta/connections/{userId}').onWrite(async (change, context) => {
-    const roomDbId = context.params['roomDbId'] as string;
-    const userId = context.params['userId'] as string;
+export const onUserDisconnect = euFunctions.database.instance(realtimeDatabaseId)
+    .ref('/rooms/{roomDbId}/connections/{userId}')
+    .onDelete(async (snapshot, context) => {
+        const roomDbId = context.params['roomDbId'] as string;
+        const userId = context.params['userId'] as string;
 
-    const valueAfter = change.after.val();
-    if (valueAfter === null) {
-        const userReference = admin.database().ref(DbPath.roomUser(roomDbId, userId));
-        await userReference.remove();
-    }
-});
+        const publicState: DbPublicState = (await admin.database().ref(DbPath.roomPublicState(roomDbId)).get()).val();
+        functions.logger.info(publicState, userId, roomDbId);
+
+        // Only delete user from room users if the game is in the lobby step.
+        if (!publicState || publicState.step === CommonGameSteps.lobby) {
+            const userReference = admin.database().ref(DbPath.roomUser(roomDbId, userId));
+            await userReference.remove();
+        }
+    });

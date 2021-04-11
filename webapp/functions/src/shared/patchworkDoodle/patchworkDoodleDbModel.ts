@@ -1,7 +1,6 @@
-import { DbInternalState, DbPrivateState, DbPublicState, DbRoom, DbRoomMeta } from '../dbmodel';
+import { CommonGameSteps, DbInternalState, DbPrivateState, DbPublicState, DbRoom, DbRoomMeta } from '../dbmodel';
 
 export enum PwdStep {
-    lobby = 'lobby',
     draw_starting_card = 'draw_starting_card',
     fill_board = 'fill_board',
     roll_dice = 'roll_dice', // action
@@ -29,7 +28,7 @@ export interface PwdDbInternalState extends DbInternalState {
 }
 
 export interface PwdDbPublicState extends DbPublicState {
-    step: PwdStep;
+    step: CommonGameSteps | PwdStep;
 }
 
 export interface PatchworkDoodleDbRoom extends DbRoom {

@@ -30,7 +30,7 @@ export interface DbRoom {
     /** Internal game state required by backend to actually run the game. */
     internal: DbInternalState | false;
     /** Public game state which all connected users may see. */
-    public: DbPrivateState | false;
+    public: DbPublicState | false;
 }
 
 export interface DbPrivateState { }
@@ -52,6 +52,10 @@ export interface DbRoomMeta {
     users: DbRoomUsers;
     players: IndexGroup;
     spectators: IndexGroup;
+}
+
+export enum CommonGameSteps {
+    lobby = 'lobby'
 }
 
 export type DbRoomUser = { name: string; };

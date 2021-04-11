@@ -4,6 +4,12 @@ export const DbPath = {
 
     room: (roomDbId: string): string =>
         `rooms/${roomDbId}`,
+    roomPublicState: (roomDbId: string): string =>
+        `rooms/${roomDbId}/public`,
+    roomInternalState: (roomDbId: string): string =>
+        `rooms/${roomDbId}/internal`,
+    roomPrivateState: (roomDbId: string): string =>
+        `rooms/${roomDbId}/private`,
     roomConnection: (roomDbId: string, userId: string): string =>
         `rooms/${roomDbId}/connections/${userId}`,
     roomConnections: (roomDbId: string): string =>

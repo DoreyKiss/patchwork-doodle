@@ -8,6 +8,7 @@
         "devall",
         "firestore",
         "predeploy",
+        "rtdb",
         "webstorage"
     ],
     "cSpell.ignorePaths": [
