@@ -2,6 +2,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { AngularFireModule } from '@angular/fire';
 import { AngularFireDatabaseModule } from '@angular/fire/database';
+import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { firebaseConfig } from 'src/environments/firebase.config';
 import { AppRoutingModule } from './app-routing.module';
@@ -24,6 +25,7 @@ import { TranslateModule } from './providers/translate-module.provider';
         BrowserModule,
         AppRoutingModule,
         HttpClientModule,
+        FormsModule,
         LoggerModule,
         TranslateModule,
         AngularFireModule.initializeApp(firebaseConfig),

@@ -1,4 +1,4 @@
-import { Injector, NgZone, OnDestroy, Component, OnInit } from '@angular/core';
+import { Component, Injector, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoomType } from 'functions/src/shared/dbmodel';
 import { createRoomDatabaseId } from 'functions/src/shared/helpers/roomHelper';

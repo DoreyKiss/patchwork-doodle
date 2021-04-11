@@ -28,15 +28,19 @@ Language:
     <!-- <div [innerHTML]="'home.helloWithNameAndId' | translate: ({
         name: this.authService.user.displayName || 'Player',
         id: this.authService.user?.uid})"></div> -->
+    <input type="text" [(ngModel)]="userName" />
+    <button (click)="updateUserDisplayName()">Update name</button>
 </ng-container>
 <ng-template #loggedOut>
     Not logged in.
 </ng-template>
 
+
 <br />
-<button (click)="loginClick()" translate>home.login</button>
-<button (click)="logoutClick()" translate>home.logout</button>
+<button (click)="login()" translate>home.login</button>
+<button (click)="logout()" translate>home.logout</button>
 
 <br /><br />
-<button (click)="createRoomClick()">{{'home.createRoom' | translate}}</button>
+<button (click)="createRoom()">{{'home.createRoom' | translate}}</button>
+
 <router-outlet></router-outlet>

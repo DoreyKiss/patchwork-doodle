@@ -34,18 +34,6 @@ export class AuthService {
         });
     }
 
-    // async updateDisplayName(newDisplayName: string): Promise<void> {
-    //     if (!this.user?.uid) {
-    //         this.log.info('No user to update.');
-    //         return;
-    //     }
-
-    //     await Promise.resolve();
-    //     // await this.databaseService.rt
-    //     //     .object<DbUser>(DbPath.user(this.user.uid))
-    //     //     .update({ displayName: newDisplayName });
-    // }
-
     async loginAnonymously(): Promise<boolean> {
         await this.auth.signInAnonymously();
         return this.user !== undefined;
@@ -53,6 +41,17 @@ export class AuthService {
 
     logout(): Promise<void> {
         return this.auth.signOut();
+    }
+
+    async updateDisplayName(newDisplayName: string): Promise<void> {
+        if (!this.user?.uid) {
+            this.log.warn('No user to update.');
+            return;
+        }
+
+        await this.databaseService.rt
+            .object<DbUser>(DbPath.user(this.user.uid))
+            .update({ displayName: newDisplayName });
     }
 
     private onAuthStateChanged(user: firebase.User) {

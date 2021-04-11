@@ -43,6 +43,7 @@
         "webapp/*.log": true,
         "webapp/functions/lib": true,
         "webapp/functions/node_modules": true,
+        "**/*.spec.ts": true, // Hide tests
     },
     "terminal.integrated.cwd": "webapp",
     "restoreTerminals.terminals": [

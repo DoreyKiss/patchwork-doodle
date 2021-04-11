@@ -12,7 +12,7 @@ import { FunctionsService } from './functions.service';
 @Injectable({
     providedIn: 'root'
 })
-export class RoomBaseService {
+export abstract class RoomBaseService {
     // Imports
     dbService: DatabaseService;
     auth: AuthService;

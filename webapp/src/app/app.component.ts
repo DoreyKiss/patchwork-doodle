@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { FunctionsService } from './services/functions.service';
 import { LocalStorageService } from './services/local-storage.service';
@@ -10,8 +11,11 @@ import { LocalStorageService } from './services/local-storage.service';
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
     title = 'Patchwork doodle';
+    userName = '';
+
+    private subscriptions: Subscription[] = [];
 
     constructor(
         public authService: AuthService,
@@ -21,15 +25,28 @@ export class AppComponent {
         private functionsService: FunctionsService
     ) { }
 
-    async loginClick(): Promise<void> {
+    ngOnInit(): void {
+        this.subscriptions.push(this.authService.userChanged.subscribe(x => this.userName = x.displayName ?? ''));
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(x => x.unsubscribe());
+        this.subscriptions = [];
+    }
+
+    async login(): Promise<void> {
         await this.authService.loginAnonymously();
     }
 
-    async logoutClick(): Promise<void> {
+    async logout(): Promise<void> {
         await this.authService.logout();
     }
 
-    async createRoomClick(): Promise<void> {
+    async updateUserDisplayName(): Promise<void> {
+        await this.authService.updateDisplayName(this.userName);
+    }
+
+    async createRoom(): Promise<void> {
         const response = await this.functionsService.createRoom({
             name: 'test room',
             type: 'patchwork_doodle'
