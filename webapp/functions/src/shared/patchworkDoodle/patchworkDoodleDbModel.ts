@@ -29,6 +29,9 @@ export interface PwdDbInternalState extends DbInternalState {
 
 export interface PwdDbPublicState extends DbPublicState {
     step: CommonGameSteps | PwdStep;
+    cardCircle?: string[]; // TODO use special representation for cards in db
+    /** The index of the card the token is placed after. */
+    tokenPosition?: number;
 }
 
 export interface PatchworkDoodleDbRoom extends DbRoom {

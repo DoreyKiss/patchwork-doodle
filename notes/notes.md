@@ -1,5 +1,9 @@
 # Notes
 
+## Patchwork doodle rule book
+
+<https://cdn.1j1ju.com/medias/16/55/03-patchwork-doodle-rulebook.pdf>
+
 ## Flowchart of patchwork doodle
 
 ```mermaid

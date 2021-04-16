@@ -6,6 +6,7 @@ import { PatchworkDoodleAction } from '../../shared/patchworkDoodle/actions';
 import { PatchworkDoodleDbRoom, PwdStep } from '../../shared/patchworkDoodle/patchworkDoodleDbModel';
 import { RoomResponse } from '../../shared/requests';
 import { EMPTY_ERROR_RESPONSE, GameManagerBase } from '../gameManagerBase';
+import { defaultRules } from './defaultRules';
 
 export class PatchworkDoodleGameManager extends GameManagerBase {
 
@@ -14,9 +15,7 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             ...genericRoom,
             meta: {
                 ...genericRoom.meta,
-                rules: {
-                    boardSize: { width: 5, height: 5 },
-                },
+                rules: defaultRules,
             },
             public: { step: CommonGameSteps.lobby },
             internal: false,
@@ -55,6 +54,8 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             };
             room.public = {
                 step: PwdStep.draw_starting_card,
+                tokenPosition: 0,
+                cardCircle: [] // TODO place cards
             };
 
             return room;
