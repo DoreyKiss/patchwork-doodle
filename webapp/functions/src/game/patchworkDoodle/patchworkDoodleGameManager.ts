@@ -4,8 +4,8 @@ import { assertNever } from '../../shared/helpers/assertNever';
 import { DbPath, unfalsifyArray } from '../../shared/helpers/databaseHelper';
 import { shuffleInPlace } from '../../shared/helpers/shuffle';
 import { PatchworkDoodleAction } from '../../shared/patchworkDoodle/actions';
-import { patchCards } from '../../shared/patchworkDoodle/cards';
-import { PatchworkDoodleDbRoom, PwdStep } from '../../shared/patchworkDoodle/patchworkDoodleDbModel';
+import { patchCards, starterCards } from '../../shared/patchworkDoodle/cards';
+import { PatchworkDoodleDbRoom, PwdDbInternalState, PwdDbPrivateState, PwdDbPublicState, PwdStep } from '../../shared/patchworkDoodle/patchworkDoodleDbModel';
 import { RoomResponse } from '../../shared/requests';
 import { EMPTY_ERROR_RESPONSE, GameManagerBase } from '../gameManagerBase';
 import { defaultRules } from './defaultRules';
@@ -21,9 +21,12 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             },
             public: {
                 step: CommonGameSteps.lobby,
-                board: false
+                board: []
             },
-            internal: false,
+            internal: {
+                deck: [],
+                discardPile: []
+            },
             private: false,
         };
 
@@ -44,6 +47,13 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
 
     protected unfalsify(room: PatchworkDoodleDbRoom): void {
         super.unfalsify(room);
+
+        const rPrivate = room.private;
+        if (rPrivate) {
+            for (let record of Object.values(rPrivate)) {
+                record.doodledCards = unfalsifyArray(record.doodledCards);
+            }
+        }
 
         const internal = room.internal;
         if (internal) {
@@ -66,27 +76,49 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
                 abort();
             }
 
+            // Convert all users to players. // TODO remove this when users can switch manually.
+            room.meta.players = Object.fromEntries(Object.keys(room.meta.users).map(x => [x, true]));
+            const players = room.meta.players;
+
             const deck = this.createDeck(room.meta.rules.deckSize);
             const discardPile: string[] = [];
-            const board = this.draw(8, deck, discardPile);
+            const starterCardIds = this.draw(Object.keys(players).length, shuffleInPlace([...starterCards.map(x => x.id)]), []);
 
-            room.private = Object.fromEntries(Object.keys(room.meta.users).map(x => [x, { // TODO use 'players' instead of 'users'
-                test: `private userInfo for ${x}`
-            }]));
+            room.private = Object.fromEntries(Object.keys(players).map((userId, index) => [userId, {
+                startingCard: starterCardIds[index],
+                doodledCards: []
+            } as PwdDbPrivateState]));
+
             room.internal = {
                 deck: deck,
                 discardPile: discardPile
             };
+
             room.public = {
-                step: PwdStep.draw_starting_card,
-                tokenPosition: 0,
-                board: board
+                step: PwdStep.doodle_starting_card,
+                board: []
             };
+
+            this.prepareRound(room);
 
             return room;
         });
 
         return response;
+    }
+
+    /**
+     * Place down 8 cards. Set the token to a random position
+     */
+    private prepareRound(room: PatchworkDoodleDbRoom): void {
+        const roomPublic = room.public as PwdDbPublicState;
+        const internal = room.internal as PwdDbInternalState;
+        const board = roomPublic.board as string[];
+        const meta = room.meta;
+
+        const cardCount = meta.rules.boardCardCount - board.length;
+        roomPublic.board = [...board, ...this.draw(cardCount, internal.deck, internal.discardPile)];
+        roomPublic.tokenPosition = 0;
     }
 
     private draw<TCard>(count: number, deck: TCard[], discardPile: TCard[]): TCard[] {
@@ -108,7 +140,7 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
 
     private createDeck(size: number): string[] {
         const deck: string[] = [];
-        const possibleCards = [...patchCards.values()];
+        const possibleCards = shuffleInPlace([...patchCards.values()]);
 
         for (let i = 0; i < size; i++) {
             deck.push(possibleCards[i % possibleCards.length].id);

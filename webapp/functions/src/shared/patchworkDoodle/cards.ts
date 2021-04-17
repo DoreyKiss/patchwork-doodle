@@ -1,17 +1,22 @@
 
 export const cardCharacters = {
     spaceChar: '.',
-    patchChar: '#'
+    patchChar: '#',
+    lineBreakChar: '|'
 };
 
 export class Card {
+    readonly display: string;
+
     constructor(
         public readonly id: string,
         public readonly cardDefinition: readonly string[]
-    ) { }
+    ) {
+        this.display = cardDefinition.join(cardCharacters.lineBreakChar);
+    }
 }
 
-export const starterCards: Map<string, Card> = new Map([
+export const starterCards = [
     new Card('sc340', [
         '..#',
         '.##',
@@ -65,9 +70,9 @@ export const starterCards: Map<string, Card> = new Map([
         '###..',
         '..###'
     ])
-].map(card => [card.id, card]));
+];
 
-export const patchCards: Map<string, Card> = new Map([
+export const patchCards = [
     new Card('pc110', [
         '#'
     ]),
@@ -136,5 +141,9 @@ export const patchCards: Map<string, Card> = new Map([
         '.#...',
         '#####'
     ])
-].map(card => [card.id, card]));
+];
+
+export const cardsById: Map<string, Card> = new Map(
+    [...starterCards, ...patchCards].map(card => [card.id, card])
+);
 

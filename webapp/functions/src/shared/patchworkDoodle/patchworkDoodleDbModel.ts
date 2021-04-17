@@ -1,7 +1,42 @@
 import { CommonGameSteps, DbInternalState, DbPrivateState, DbPublicState, DbRoom, DbRoomMeta } from '../dbmodel';
 
+export interface PatchworkDoodleDbRoom extends DbRoom {
+    private: Record<string, PwdDbPrivateState> | false;
+    internal: PwdDbInternalState | false;
+    public: PwdDbPublicState | false;
+    meta: PwdDbMeta;
+}
+
+export interface PwdDbInternalState extends DbInternalState {
+    deck: string[];
+    discardPile: string[];
+}
+
+export interface PwdDbPrivateState extends DbPrivateState {
+    startingCard: string;
+    doodledCards: PwdDoodledCard[];
+}
+
+export interface PwdDbPublicState extends DbPublicState {
+    step: CommonGameSteps | PwdStep;
+    board?: string[];
+    /** The index of the card the token is placed after. */
+    tokenPosition?: number;
+}
+
+export interface PwdDbMeta extends DbRoomMeta {
+    rules: PwdRules;
+}
+
+export interface PwdDoodledCard {
+    display: string;
+    originalCardId: string;
+    x: number;
+    y: number;
+}
+
 export enum PwdStep {
-    draw_starting_card = 'draw_starting_card',
+    doodle_starting_card = 'doodle_starting_card',
     fill_board = 'fill_board',
     roll_dice = 'roll_dice', // action
     doodle_card = 'doodle_card',
@@ -12,33 +47,7 @@ export enum PwdStep {
 }
 
 export interface PwdRules {
-    boardSize: { width: number, height: number; };
+    boardCardCount: number,
+    drawingBoardSize: { width: number, height: number; };
     deckSize: number;
-}
-
-export interface PwdDbMeta extends DbRoomMeta {
-    rules: PwdRules;
-}
-
-export interface PwdDbPrivateState extends DbPrivateState {
-    test: string;
-}
-
-export interface PwdDbInternalState extends DbInternalState {
-    deck: string[];
-    discardPile: string[];
-}
-
-export interface PwdDbPublicState extends DbPublicState {
-    step: CommonGameSteps | PwdStep;
-    board: string[] | false;
-    /** The index of the card the token is placed after. */
-    tokenPosition?: number;
-}
-
-export interface PatchworkDoodleDbRoom extends DbRoom {
-    private: Record<string, PwdDbPrivateState> | false;
-    internal: PwdDbInternalState | false;
-    public: PwdDbPublicState | false;
-    meta: PwdDbMeta;
 }
