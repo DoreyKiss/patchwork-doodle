@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { CommonGameSteps, DbRoom } from '../../shared/dbmodel';
 import { assertNever } from '../../shared/helpers/assertNever';
-import { DbPath } from '../../shared/helpers/databaseHelper';
+import { DbPath, unfalsifyArray } from '../../shared/helpers/databaseHelper';
 import { shuffleInPlace } from '../../shared/helpers/shuffle';
 import { PatchworkDoodleAction } from '../../shared/patchworkDoodle/actions';
 import { patchCards } from '../../shared/patchworkDoodle/cards';
@@ -19,7 +19,10 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
                 ...genericRoom.meta,
                 rules: defaultRules,
             },
-            public: { step: CommonGameSteps.lobby },
+            public: {
+                step: CommonGameSteps.lobby,
+                board: false
+            },
             internal: false,
             private: false,
         };
@@ -37,6 +40,21 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
         }
 
         return Promise.resolve(EMPTY_ERROR_RESPONSE);
+    }
+
+    protected unfalsify(room: PatchworkDoodleDbRoom): void {
+        super.unfalsify(room);
+
+        const internal = room.internal;
+        if (internal) {
+            internal.deck = unfalsifyArray(internal.deck);
+            internal.discardPile = unfalsifyArray(internal.discardPile);
+        }
+
+        const rPublic = room.public;
+        if (rPublic) {
+            rPublic.board = unfalsifyArray(rPublic.board);
+        }
     }
 
     private async start(): Promise<RoomResponse> {

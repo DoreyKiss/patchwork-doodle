@@ -72,6 +72,14 @@ export class RoomBaseComponent implements OnInit, OnDestroy {
         this.roomId = roomId;
         this.roomDbId = createRoomDatabaseId(this.roomType, roomId);
 
+        // If we end up on the same route but different room id, reload the component.
+        this.subscriptions.push(this.route.paramMap.subscribe(paramMap => {
+            if (this.roomId !== paramMap.get('id')) {
+                // TODO this is somewhat of a hack to reload the component. Consider finding another way.
+                void this.ngOnDestroy().then(() => this.ngOnInit());
+            }
+        }));
+
         // Join room if everything is fine
         const success = await this.#roomService.joinRoom(this.roomDbId);
 

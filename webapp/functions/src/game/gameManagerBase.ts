@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DbRoom } from '../shared/dbmodel';
+import { unfalsifyObject } from '../shared/helpers/databaseHelper';
 import { ErrorResponse, GameActionRequest, RoomResponse } from '../shared/requests';
 
 export const EMPTY_ERROR_RESPONSE: RoomResponse = { success: false };
@@ -46,6 +47,7 @@ export abstract class GameManagerBase {
             }
 
             try {
+                this.unfalsify(room);
                 const abort = (msg?: string) => { throw new AbortError(msg); };
                 return updater(room, abort);
             }
@@ -62,6 +64,19 @@ export abstract class GameManagerBase {
         if (response.success && !roomExist) {
             this.updateResponseError(response, 'Room does not exist!');
         }
+    }
+
+    /**
+     * Converts falsy values in the room model to their empty {} and [] counterparts.
+     */
+    protected unfalsify(room: DbRoom): void {
+        room.connections = unfalsifyObject(room.connections);
+        room.private = unfalsifyObject(room.private);
+
+        const meta = room.meta;
+        meta.users = unfalsifyObject(meta.users);
+        meta.players = unfalsifyObject(meta.players);
+        meta.spectators = unfalsifyObject(meta.spectators);
     }
 
     protected assertRoom(room: DbRoom, response: RoomResponse): boolean {

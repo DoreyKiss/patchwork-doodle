@@ -1,3 +1,4 @@
+
 export const DbPath = {
     user: (userId: string): string =>
         `users/${userId}`,
@@ -19,6 +20,14 @@ export const DbPath = {
     roomUsers: (roomDbId: string): string =>
         `rooms/${roomDbId}/meta/users`
 };
+
+export function unfalsifyObject<TValue>(obj: Record<string, TValue> | false | null | undefined): Record<string, TValue> {
+    return obj ? obj : {};
+}
+
+export function unfalsifyArray<TValue>(array: TValue[] | false | null | undefined): TValue[] {
+    return array ? array : [];
+}
 
 /**
  * Deletes a key from the given object. Return the object if there are remaining keys, false otherwise.

@@ -9,6 +9,7 @@
         "firestore",
         "predeploy",
         "rtdb",
+        "unfalsify",
         "webstorage"
     ],
     "cSpell.ignorePaths": [

@@ -31,7 +31,7 @@ export interface PwdDbInternalState extends DbInternalState {
 
 export interface PwdDbPublicState extends DbPublicState {
     step: CommonGameSteps | PwdStep;
-    board?: string[]; // TODO use special representation for cards in db
+    board: string[] | false;
     /** The index of the card the token is placed after. */
     tokenPosition?: number;
 }
