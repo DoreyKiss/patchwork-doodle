@@ -11,7 +11,7 @@ export class Card {
     ) { }
 }
 
-export const starterCards = [
+export const starterCards: Map<string, Card> = new Map([
     new Card('sc340', [
         '..#',
         '.##',
@@ -65,9 +65,9 @@ export const starterCards = [
         '###..',
         '..###'
     ])
-];
+].map(card => [card.id, card]));
 
-export const patchCards = [
+export const patchCards: Map<string, Card> = new Map([
     new Card('pc110', [
         '#'
     ]),
@@ -136,5 +136,5 @@ export const patchCards = [
         '.#...',
         '#####'
     ])
-];
+].map(card => [card.id, card]));
 

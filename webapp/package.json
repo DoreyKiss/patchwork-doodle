@@ -3,6 +3,7 @@
     "version": "0.0.0",
     "scripts": {
         "dev": "SET EMULATED=1* && firebase emulators:start",
+        "debug": "SET EMULATED=1* && firebase emulators:start --inspect-functions",
         "dev2": "ng build --watch",
         "dev3": "npm run --prefix functions dev",
         "devall": "wt -d . cmd /k \"npm run dev\" `; split-pane -d . -V -s .4 cmd /k \"npm run dev2\" `; split-pane -d . -H cmd /k \"npm run dev3\"",

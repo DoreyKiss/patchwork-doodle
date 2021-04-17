@@ -13,6 +13,7 @@ export enum PwdStep {
 
 export interface PwdRules {
     boardSize: { width: number, height: number; };
+    deckSize: number;
 }
 
 export interface PwdDbMeta extends DbRoomMeta {
@@ -24,12 +25,13 @@ export interface PwdDbPrivateState extends DbPrivateState {
 }
 
 export interface PwdDbInternalState extends DbInternalState {
-    test: string;
+    deck: string[];
+    discardPile: string[];
 }
 
 export interface PwdDbPublicState extends DbPublicState {
     step: CommonGameSteps | PwdStep;
-    cardCircle?: string[]; // TODO use special representation for cards in db
+    board?: string[]; // TODO use special representation for cards in db
     /** The index of the card the token is placed after. */
     tokenPosition?: number;
 }

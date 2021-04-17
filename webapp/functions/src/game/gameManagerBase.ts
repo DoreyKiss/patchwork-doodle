@@ -33,13 +33,13 @@ export abstract class GameManagerBase {
      * Executes a transaction on a room reference.
      * Updates the response with the appropriate error message if the room does not exist, or if there is an unknown error.
      */
-    protected async roomTransaction<RoomType extends DbRoom>(
-        ref: admin.database.Reference,
+    public async roomTransaction<RoomType extends DbRoom>(
+        roomRef: admin.database.Reference,
         response: RoomResponse,
         updater: (room: RoomType, abort: (message?: string) => never) => RoomType | null | undefined
     ): Promise<void> {
         let roomExist = false;
-        await ref.transaction((room: RoomType) => {
+        await roomRef.transaction((room: RoomType) => {
             roomExist = room !== null;
             if (room === null) {
                 return room; // Room can be null on first local try, so we do not cancel the transaction here, instead keep track of room state.

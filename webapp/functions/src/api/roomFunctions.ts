@@ -3,9 +3,9 @@ import { Reference } from '@firebase/database-types';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { nanoid } from 'nanoid';
-import { getGameManager } from '../game/gameManagerMapping';
-import { CommonGameSteps, DbPublicState, DbRoom, DbRoomUsers } from '../shared/dbmodel';
-import { DbPath } from '../shared/helpers/databaseHelper';
+import { getDefaultGameManager, getGameManager } from '../game/gameManagerMapping';
+import { CommonGameSteps, DbRoom, DbRoomUsers } from '../shared/dbmodel';
+import { DbPath, deleteDbKey } from '../shared/helpers/databaseHelper';
 import { createRoomDatabaseId } from '../shared/helpers/roomHelper';
 import { CreateRoomRequest, CreateRoomResponse, JoinRoomRequest, JoinRoomResponse } from '../shared/requests';
 import { realtimeDatabaseId } from './config';
@@ -98,9 +98,7 @@ export const join = euFunctions.https.onCall(async (data: JoinRoomRequest, conte
     const userDisplayName = (await admin.database().ref(DbPath.user(userId)).child('displayName').get()).val() as string ?? 'Unknown user';
 
     await admin.database().ref(DbPath.roomUsers(roomDbId)).transaction((users: DbRoomUsers | null) => {
-        functions.logger.info(users);
         if (users === null) {
-            functions.logger.warn(`Room ${roomDbId} does not exist!`);
             return users;
         }
 
@@ -108,11 +106,12 @@ export const join = euFunctions.https.onCall(async (data: JoinRoomRequest, conte
             users = {};
         }
 
+        functions.logger.info(`${userDisplayName}-${userId} joined Room ${roomDbId}.`); // This triggers locally for first change
         users[userId] = { name: userDisplayName };
         return users;
     });
 
-    return { success: true } as JoinRoomResponse;
+    return { success: true } as JoinRoomResponse; // TODO return false if not successful
 });
 
 /**
@@ -125,12 +124,16 @@ export const onUserDisconnect = euFunctions.database.instance(realtimeDatabaseId
         const roomDbId = context.params['roomDbId'] as string;
         const userId = context.params['userId'] as string;
 
-        const publicState: DbPublicState = (await admin.database().ref(DbPath.roomPublicState(roomDbId)).get()).val();
-        functions.logger.info(publicState, userId, roomDbId);
+        const manager = getDefaultGameManager(roomDbId, userId);
+        const roomRef = admin.database().ref(DbPath.room(roomDbId));
+        await manager.roomTransaction(roomRef, { success: true }, (room, abort) => {
+            const publicState = room.public;
+            functions.logger.info(publicState, userId, roomDbId);
 
-        // Only delete user from room users if the game is in the lobby step.
-        if (!publicState || publicState.step === CommonGameSteps.lobby) {
-            const userReference = admin.database().ref(DbPath.roomUser(roomDbId, userId));
-            await userReference.remove();
-        }
+            // Only delete user from room users if the game is in the lobby step.
+            if (!publicState || publicState.step === CommonGameSteps.lobby) {
+                room.meta.users = deleteDbKey(room.meta.users, userId);
+            }
+            return room;
+        });
     });
