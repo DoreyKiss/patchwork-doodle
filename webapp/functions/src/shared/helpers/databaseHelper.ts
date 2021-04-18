@@ -9,8 +9,8 @@ export const DbPath = {
         `rooms/${roomDbId}/public`,
     roomInternalState: (roomDbId: string): string =>
         `rooms/${roomDbId}/internal`,
-    roomPrivateState: (roomDbId: string): string =>
-        `rooms/${roomDbId}/private`,
+    roomPrivateState: (roomDbId: string, userId: string): string =>
+        `rooms/${roomDbId}/private/${userId}`,
     roomConnection: (roomDbId: string, userId: string): string =>
         `rooms/${roomDbId}/connections/${userId}`,
     roomConnections: (roomDbId: string): string =>

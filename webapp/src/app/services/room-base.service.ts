@@ -23,13 +23,14 @@ export abstract class RoomBaseService {
     auth: AuthService;
     log: NGXLogger;
     functions: FunctionsService;
+    db: AngularFireDatabase;
 
     usersSubject = new BehaviorSubject<ClientUser[]>([]);
 
+    protected subscriptions: Subscription[] = [];
+
     private roomDbId?: string;
-    private db: AngularFireDatabase;
     private currentConn: firebase.database.Reference | null = null;
-    private subscriptions: Subscription[] = [];
 
     constructor(
         injector: Injector
@@ -78,7 +79,7 @@ export abstract class RoomBaseService {
         }
     }
 
-    private subscribeToDb(roomDbId: string) {
+    protected subscribeToDb(roomDbId: string): void {
         this.log.info('subscribeToDb');
         const usersSubscription = this.db
             .object<DbRoomUsers>(DbPath.roomUsers(roomDbId))

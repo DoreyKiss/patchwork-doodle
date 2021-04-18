@@ -1,5 +1,5 @@
 
-export const cardCharacters = {
+export const patchCharacters = {
     spaceChar: '.',
     patchChar: '#',
     lineBreakChar: '|'
@@ -12,9 +12,11 @@ export class Card {
         public readonly id: string,
         public readonly cardDefinition: readonly string[]
     ) {
-        this.display = cardDefinition.join(cardCharacters.lineBreakChar);
+        this.display = cardDefinition.join(patchCharacters.lineBreakChar);
     }
 }
+
+export const singleTileCard = new Card('pc110', ['#']);
 
 export const starterCards = [
     new Card('sc340', [
@@ -144,6 +146,6 @@ export const patchCards = [
 ];
 
 export const cardsById: Map<string, Card> = new Map(
-    [...starterCards, ...patchCards].map(card => [card.id, card])
+    [...starterCards, ...patchCards, singleTileCard].map(card => [card.id, card])
 );
 

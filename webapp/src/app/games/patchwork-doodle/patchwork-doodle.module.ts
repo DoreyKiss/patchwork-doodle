@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RoomComponent } from './room/room.component';
 
 @NgModule({
@@ -7,7 +8,8 @@ import { RoomComponent } from './room/room.component';
         RoomComponent
     ],
     imports: [
-        CommonModule
+        CommonModule,
+        FormsModule
     ]
 })
 export class PatchworkDoodleModule { }

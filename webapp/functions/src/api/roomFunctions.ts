@@ -63,7 +63,10 @@ export const create = euFunctions.https.onCall(async (data: CreateRoomRequest, c
             connections: false,
             private: false,
             internal: false,
-            public: false
+            public: {
+                step: CommonGameSteps.lobby,
+                readyStates: {}
+            }
         };
         const newRoom = gameManager.createSpecificRoom(genericRoom);
 

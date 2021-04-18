@@ -1,14 +1,16 @@
 import * as admin from 'firebase-admin';
-import { CommonGameSteps, DbRoom } from '../../shared/dbmodel';
+import { CommonGameSteps, DbPublicState, DbRoom } from '../../shared/dbmodel';
 import { assertNever } from '../../shared/helpers/assertNever';
-import { DbPath, unfalsifyArray } from '../../shared/helpers/databaseHelper';
+import { DbPath, unfalsifyArray, unfalsifyObject } from '../../shared/helpers/databaseHelper';
+import { remapRecord } from '../../shared/helpers/mapHelper';
 import { shuffleInPlace } from '../../shared/helpers/shuffle';
-import { PatchworkDoodleAction } from '../../shared/patchworkDoodle/actions';
-import { patchCards, starterCards } from '../../shared/patchworkDoodle/cards';
+import { DoodleCardAction, PatchworkDoodleAction } from '../../shared/patchworkDoodle/actions';
+import { Card, cardsById, patchCards, singleTileCard, starterCards } from '../../shared/patchworkDoodle/cards';
 import { PatchworkDoodleDbRoom, PwdDbInternalState, PwdDbPrivateState, PwdDbPublicState, PwdStep } from '../../shared/patchworkDoodle/patchworkDoodleDbModel';
 import { RoomResponse } from '../../shared/requests';
-import { EMPTY_ERROR_RESPONSE, GameManagerBase } from '../gameManagerBase';
+import { GameManagerBase } from '../gameManagerBase';
 import { defaultRules } from './defaultRules';
+import { DrawingBoard, DrawSuccess } from './drawingBoard';
 
 export class PatchworkDoodleGameManager extends GameManagerBase {
 
@@ -20,14 +22,16 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
                 rules: defaultRules,
             },
             public: {
+                ...genericRoom.public as DbPublicState,
                 step: CommonGameSteps.lobby,
-                board: []
+                board: [],
+                tokenPosition: -1,
             },
             internal: {
                 deck: [],
                 discardPile: []
             },
-            private: false,
+            private: false
         };
 
         return doodleDbRoom;
@@ -35,14 +39,12 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
 
     action(action: PatchworkDoodleAction): Promise<RoomResponse> {
         switch (action.type) {
-            case 'start': return this.start(); break;
-            case 'doodle_card': console.log(action); break;
+            case 'start': return this.startAction();
+            case 'doodle_card': return this.doodleCardAction(action);
             default:
                 assertNever(action, false);
                 return Promise.resolve(this.errorResponse('Invalid action!'));
         }
-
-        return Promise.resolve(EMPTY_ERROR_RESPONSE);
     }
 
     protected unfalsify(room: PatchworkDoodleDbRoom): void {
@@ -50,7 +52,7 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
 
         const rPrivate = room.private;
         if (rPrivate) {
-            for (let record of Object.values(rPrivate)) {
+            for (const record of Object.values(rPrivate)) {
                 record.doodledCards = unfalsifyArray(record.doodledCards);
             }
         }
@@ -67,7 +69,7 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
         }
     }
 
-    private async start(): Promise<RoomResponse> {
+    private async startAction(): Promise<RoomResponse> {
         const response: RoomResponse = { success: true };
         const roomReference = admin.database().ref(DbPath.room(this.roomDbId));
 
@@ -77,17 +79,19 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             }
 
             // Convert all users to players. // TODO remove this when users can switch manually.
-            room.meta.players = Object.fromEntries(Object.keys(room.meta.users).map(x => [x, true]));
+            room.meta.players = remapRecord(unfalsifyObject(room.meta.users), () => true);
             const players = room.meta.players;
 
             const deck = this.createDeck(room.meta.rules.deckSize);
             const discardPile: string[] = [];
             const starterCardIds = this.draw(Object.keys(players).length, shuffleInPlace([...starterCards.map(x => x.id)]), []);
+            const emptyBoard = new DrawingBoard(room.meta.rules).serializeBoard();
 
-            room.private = Object.fromEntries(Object.keys(players).map((userId, index) => [userId, {
+            room.private = remapRecord(players, (_key, _value, index) => ({
+                serializedBoard: emptyBoard,
                 startingCard: starterCardIds[index],
                 doodledCards: []
-            } as PwdDbPrivateState]));
+            }));
 
             room.internal = {
                 deck: deck,
@@ -96,7 +100,9 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
 
             room.public = {
                 step: PwdStep.doodle_starting_card,
-                board: []
+                board: [],
+                tokenPosition: -1,
+                readyStates: remapRecord(players, () => false)
             };
 
             this.prepareRound(room);
@@ -107,13 +113,95 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
         return response;
     }
 
+    private async doodleCardAction(action: DoodleCardAction): Promise<RoomResponse> {
+        const response: RoomResponse = { success: true };
+        const roomReference = admin.database().ref(DbPath.room(this.roomDbId));
+        await this.roomTransaction(roomReference, response, (room: PatchworkDoodleDbRoom, abort) => {
+            if (!this.assertUserIsPlayer(room, response)) { abort(); }
+
+            // TODO uncommented for test reasons
+            // if (!this.assertPlayerNotReady(room, response)) { abort(); }
+
+            // const rInternal = room.internal as PwdDbInternalState;
+            const rPrivate = unfalsifyObject(room.private)[this.userId];
+            const rPublic = room.public as PwdDbPublicState;
+
+            if (![PwdStep.doodle_starting_card, PwdStep.doodle_card].includes(rPublic.step as PwdStep)) {
+                this.updateResponseError(response, 'Cannot doodle card in the current step!');
+                abort();
+            }
+
+            if (!this.assertDoodledCardIsValid(rPublic, rPrivate, action)) {
+                this.updateResponseError(response, 'Doodled card is not valid!');
+                abort();
+            }
+
+            const doodledCard = cardsById.get(action.cardId) as Card;
+            const doodleBoard = new DrawingBoard(room.meta.rules, rPrivate.serializedBoard);
+
+            // TODO handle cut power
+            const doodleResult = doodleBoard.tryDraw(doodledCard.display, action.x, action.y, action.rotationCount, action.isFlipped);
+            if (!doodleResult.success) {
+                this.updateResponseError(response, doodleResult.error);
+                abort();
+            }
+
+            rPrivate.doodledCards.push({
+                originalCardId: action.cardId,
+                display: (doodleResult as DrawSuccess).display,
+                x: action.x,
+                y: action.y
+            });
+
+            rPublic.readyStates[this.userId] = true;
+            rPrivate.serializedBoard = doodleBoard.serializeBoard();
+
+            if (Object.values(rPublic.readyStates).every(isReady => isReady)) {
+                // TODO handle if everyBody is ready
+                // this.log
+            }
+
+            return room;
+        });
+
+        return response;
+    }
+
+    private assertDoodledCardIsValid(rPublic: PwdDbPublicState, rPrivate: PwdDbPrivateState, action: DoodleCardAction): boolean {
+        let validCards: string[] = [];
+        switch (rPublic.step) {
+            case PwdStep.doodle_starting_card:
+                validCards = [rPrivate.startingCard];
+                // TODO are powers valid here?
+                break;
+            case PwdStep.doodle_card:
+                switch (action.power?.type) {
+                    case 'neighbor':
+                        validCards = [
+                            rPublic.board[rPublic.tokenPosition - 1 + rPublic.board.length % rPublic.board.length],
+                            rPublic.board[rPublic.tokenPosition + 1 % rPublic.board.length]
+                        ];
+                        break;
+                    case 'one':
+                        validCards = [singleTileCard.id];
+                        break;
+                    default:
+                        validCards = [rPublic.board[rPublic.tokenPosition]];
+                        break;
+                }
+                break;
+        }
+
+        return validCards.includes(action.cardId);
+    }
+
     /**
      * Place down 8 cards. Set the token to a random position
      */
     private prepareRound(room: PatchworkDoodleDbRoom): void {
         const roomPublic = room.public as PwdDbPublicState;
         const internal = room.internal as PwdDbInternalState;
-        const board = roomPublic.board as string[];
+        const board = roomPublic.board;
         const meta = room.meta;
 
         const cardCount = meta.rules.boardCardCount - board.length;

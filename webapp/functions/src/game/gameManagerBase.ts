@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { DbRoom } from '../shared/dbmodel';
+import { DbPublicState, DbRoom } from '../shared/dbmodel';
 import { unfalsifyObject } from '../shared/helpers/databaseHelper';
 import { ErrorResponse, GameActionRequest, RoomResponse } from '../shared/requests';
 
@@ -48,7 +48,7 @@ export abstract class GameManagerBase {
 
             try {
                 this.unfalsify(room);
-                const abort = (msg?: string) => { throw new AbortError(msg); };
+                const abort = (msg?: string): never => { throw new AbortError(msg); };
                 return updater(room, abort);
             }
             catch (err) {
@@ -77,6 +77,11 @@ export abstract class GameManagerBase {
         meta.users = unfalsifyObject(meta.users);
         meta.players = unfalsifyObject(meta.players);
         meta.spectators = unfalsifyObject(meta.spectators);
+
+        const rPublic = room.public;
+        if (rPublic) {
+            rPublic.readyStates = unfalsifyObject(rPublic.readyStates);
+        }
     }
 
     protected assertRoom(room: DbRoom, response: RoomResponse): boolean {
@@ -95,6 +100,22 @@ export abstract class GameManagerBase {
         return true;
     }
 
+    protected assertUserIsPlayer(room: DbRoom, response: RoomResponse): boolean {
+        if (!room.meta.players[this.userId]) {
+            this.updateResponseError(response, 'Only a player can perform this action!');
+            return false;
+        }
+        return true;
+    }
+
+    protected assertPlayerNotReady(room: DbRoom, response: RoomResponse): boolean {
+        if ((room.public as DbPublicState)?.readyStates[this.userId]) {
+            this.updateResponseError(response, 'Player have already performed this action!');
+            return false;
+        }
+        return true;
+    }
+
     protected assertCommitted(committed: boolean, response: RoomResponse): void {
         if (response.success && !committed) {
             this.updateResponseError(response, 'Unknown error!');
@@ -104,7 +125,7 @@ export abstract class GameManagerBase {
     protected updateResponseError(response: RoomResponse, message: string): void {
         response.success = false;
         // Force typescript to recognize that response is now ErrorResponse...
-        if (response.success) { throw new Error(); }
+        if (response.success) { throw new Error(); } // This never throws
         response.message = message;
     }
 }

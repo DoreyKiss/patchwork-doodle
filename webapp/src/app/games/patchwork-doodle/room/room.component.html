@@ -7,4 +7,15 @@
     </li>
 </ul>
 
-<button (click)="start()">Start</button>
+<button (click)="start()">Start game</button>
+<br /><br />
+<input type="text" [(ngModel)]="cardId" size="5" /> - Card id<br />
+<input type="text" [(ngModel)]="x" size="1" /> - X<br />
+<input type="text" [(ngModel)]="y" size="1" /> - Y<br />
+<input type="text" [(ngModel)]="rotationCount" size="1" /> - Rotation count<br />
+<input type="text" [(ngModel)]="isFlipped" size="1" /> - Is flipped<br />
+<button (click)="testDraw()">Test draw</button>
+
+<pre>
+<ng-container *ngFor="let line of this.board">{{line + '\n'}}</ng-container>
+</pre>

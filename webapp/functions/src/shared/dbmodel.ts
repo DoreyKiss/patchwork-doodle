@@ -39,6 +39,7 @@ export interface DbInternalState { }
 
 export interface DbPublicState {
     step: string;
+    readyStates: Record<string, boolean>;
 }
 
 export const ROOM_TYPES = ['patchwork_doodle'] as const;

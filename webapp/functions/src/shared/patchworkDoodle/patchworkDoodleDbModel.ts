@@ -13,15 +13,16 @@ export interface PwdDbInternalState extends DbInternalState {
 }
 
 export interface PwdDbPrivateState extends DbPrivateState {
+    serializedBoard: string;
     startingCard: string;
     doodledCards: PwdDoodledCard[];
 }
 
 export interface PwdDbPublicState extends DbPublicState {
     step: CommonGameSteps | PwdStep;
-    board?: string[];
+    board: string[];
     /** The index of the card the token is placed after. */
-    tokenPosition?: number;
+    tokenPosition: number;
 }
 
 export interface PwdDbMeta extends DbRoomMeta {
