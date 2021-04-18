@@ -19,9 +19,9 @@
         "rooms": {
             "$roomId": {
                 "connections": {
+                    // Connections for room, allow read if user is part of the room
+                    ".read": "root.child('rooms/'+$roomId+'/meta/users/'+auth.uid).exists()",
                     "$userId": {
-                        // Allow read their own data
-                        ".read": "$userId === auth.uid",
                         // Allow write if user is part of the room
                         ".write": "$userId === auth.uid && data.parent().parent().exists() && root.child('rooms/'+$roomId+'/meta/users/'+auth.uid).exists()",
                         // Only allow db-generated ids as new value
