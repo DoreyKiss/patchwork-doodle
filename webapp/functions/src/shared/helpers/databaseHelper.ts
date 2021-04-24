@@ -33,14 +33,14 @@ export function unfalsifyArray<TValue>(array: TValue[] | false | null | undefine
  * Deletes a key from the given object. Return the object if there are remaining keys, false otherwise.
  * Used because firebase do not keep empty objects inside the database, so we represent these as false instead.
  */
-export function deleteDbKey<TValue>(obj: Record<string, TValue> | false, key: string): Record<string, TValue> | false {
+export function deleteDbKey<TValue>(obj: Record<string, TValue> | false | null, key: string): Record<string, TValue> {
     if (!obj) {
-        return false;
+        return {};
     }
 
     delete obj[key];
     if (Object.keys(obj).length === 0) {
-        return false;
+        return {};
     }
     return obj;
 }

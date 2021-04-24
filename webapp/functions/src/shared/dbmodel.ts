@@ -26,16 +26,18 @@ export interface DbRoom {
      * Private part of the game state for each user such as cards in hand.
      * {userId: state} 
      * */
-    private: Record<string, DbPrivateState> | false;
+    private: Record<string, DbEmptyPrivateState>;
+
     /** Internal game state required by backend to actually run the game. */
-    internal: DbInternalState | false;
+    internal: DbEmptyInternalState;
+
     /** Public game state which all connected users may see. */
-    public: DbPublicState | false;
+    public: DbPublicState;
 }
 
-export interface DbPrivateState { }
+export interface DbEmptyPrivateState { }
 
-export interface DbInternalState { }
+export interface DbEmptyInternalState { }
 
 export interface DbPublicState {
     step: string;
@@ -61,5 +63,5 @@ export enum CommonGameSteps {
 
 export type DbRoomUser = { name: string; };
 
-export type DbRoomUsers = Record<string, DbRoomUser> | false;
-export type DbRoomConnections = Record<string, IndexGroup> | false;
+export type DbRoomUsers = Record<string, DbRoomUser>;
+export type DbRoomConnections = Record<string, IndexGroup>;

@@ -1,18 +1,18 @@
-import { CommonGameSteps, DbInternalState, DbPrivateState, DbPublicState, DbRoom, DbRoomMeta } from '../dbmodel';
+import { CommonGameSteps, DbEmptyInternalState, DbEmptyPrivateState, DbPublicState, DbRoom, DbRoomMeta } from '../dbmodel';
 
 export interface PatchworkDoodleDbRoom extends DbRoom {
-    private: Record<string, PwdDbPrivateState> | false;
-    internal: PwdDbInternalState | false;
-    public: PwdDbPublicState | false;
+    private: Record<string, PwdDbPrivateState>;
+    internal: PwdDbInternalState;
+    public: PwdDbPublicState;
     meta: PwdDbMeta;
 }
 
-export interface PwdDbInternalState extends DbInternalState {
+export interface PwdDbInternalState extends DbEmptyInternalState {
     deck: string[];
     discardPile: string[];
 }
 
-export interface PwdDbPrivateState extends DbPrivateState {
+export interface PwdDbPrivateState extends DbEmptyPrivateState {
     serializedBoard: string;
     startingCard: string;
     doodledCards: PwdDoodledCard[];

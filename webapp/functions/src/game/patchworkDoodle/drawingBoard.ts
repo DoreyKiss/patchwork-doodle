@@ -32,11 +32,11 @@ export class DrawingBoard {
     }
 
     tryDraw(
-        cardDisplay: string,
+        serializedPatch: string,
         x: number, y: number,
         rotations: number, isFlipped: boolean
     ): DrawResult {
-        let patch = cardDisplay.split(patchCharacters.lineBreakChar).map(x => x.split(''));
+        let patch = serializedPatch.split(patchCharacters.lineBreakChar).map(x => x.split(''));
         if (isFlipped) {
             patch = this.flip(patch);
         }
@@ -74,8 +74,8 @@ export class DrawingBoard {
     public rotate(source: string[][], rotateCount: number): string[][] {
         const sourceHeight = source.length;
         const sourceWidth = source[0].length;
-        const targetHeight = rotateCount % 2 == 0 ? sourceHeight : sourceWidth;
-        const targetWidth = rotateCount % 2 == 0 ? sourceWidth : sourceHeight;
+        const targetHeight = rotateCount % 2 === 0 ? sourceHeight : sourceWidth;
+        const targetWidth = rotateCount % 2 === 0 ? sourceWidth : sourceHeight;
         const isRightDirection = rotateCount > 0;
         rotateCount = Math.floor(Math.abs(rotateCount)) % 4;
 

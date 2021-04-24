@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { DbPublicState, DbRoom } from '../shared/dbmodel';
+import { CommonGameSteps, DbEmptyInternalState, DbPublicState, DbRoom, DbRoomMeta } from '../shared/dbmodel';
 import { unfalsifyObject } from '../shared/helpers/databaseHelper';
 import { ErrorResponse, GameActionRequest, RoomResponse } from '../shared/requests';
 
@@ -36,10 +36,11 @@ export abstract class GameManagerBase {
      */
     public async roomTransaction<RoomType extends DbRoom>(
         roomRef: admin.database.Reference,
-        response: RoomResponse,
-        updater: (room: RoomType, abort: (message?: string) => never) => RoomType | null | undefined
-    ): Promise<void> {
+        updater: (room: RoomType, abort: (message?: string) => never, response: RoomResponse) => RoomType | null | undefined
+    ): Promise<RoomResponse> {
+        const response = { success: true };
         let roomExist = false;
+
         await roomRef.transaction((room: RoomType) => {
             roomExist = room !== null;
             if (room === null) {
@@ -49,7 +50,7 @@ export abstract class GameManagerBase {
             try {
                 this.unfalsify(room);
                 const abort = (msg?: string): never => { throw new AbortError(msg); };
-                return updater(room, abort);
+                return updater(room, abort, response);
             }
             catch (err) {
                 if (err instanceof AbortError) {
@@ -64,6 +65,8 @@ export abstract class GameManagerBase {
         if (response.success && !roomExist) {
             this.updateResponseError(response, 'Room does not exist!');
         }
+
+        return response;
     }
 
     /**
@@ -73,15 +76,17 @@ export abstract class GameManagerBase {
         room.connections = unfalsifyObject(room.connections);
         room.private = unfalsifyObject(room.private);
 
-        const meta = room.meta;
+        room.internal = room.internal ?? {} as DbEmptyInternalState;
+
+        const meta: DbRoomMeta = room.meta;
         meta.users = unfalsifyObject(meta.users);
         meta.players = unfalsifyObject(meta.players);
         meta.spectators = unfalsifyObject(meta.spectators);
 
-        const rPublic = room.public;
-        if (rPublic) {
-            rPublic.readyStates = unfalsifyObject(rPublic.readyStates);
-        }
+        const rPublic: DbPublicState = room.public ?? {
+            step: CommonGameSteps.lobby
+        };
+        rPublic.readyStates = unfalsifyObject(rPublic.readyStates);
     }
 
     protected assertRoom(room: DbRoom, response: RoomResponse): boolean {
@@ -109,7 +114,7 @@ export abstract class GameManagerBase {
     }
 
     protected assertPlayerNotReady(room: DbRoom, response: RoomResponse): boolean {
-        if ((room.public as DbPublicState)?.readyStates[this.userId]) {
+        if (room.public.readyStates[this.userId]) {
             this.updateResponseError(response, 'Player have already performed this action!');
             return false;
         }
