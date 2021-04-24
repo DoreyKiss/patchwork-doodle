@@ -39,7 +39,8 @@ export class RoomComponent extends RoomBaseComponent implements OnInit {
 
     async start(): Promise<void> {
         const startAction: StartGameAction = { roomDbId: this.roomDbId, type: 'start' };
-        await this.functionsService.gameAction(startAction).toPromise();
+        const result = await this.functionsService.gameAction(startAction).toPromise();
+        this.log.info('Start action result', result);
     }
 
     async testDraw(): Promise<void> {
@@ -55,6 +56,6 @@ export class RoomComponent extends RoomBaseComponent implements OnInit {
         };
 
         const result = await this.functionsService.gameAction(doodleAction).toPromise();
-        this.log.info(result);
+        this.log.info('Test draw result', result);
     }
 }

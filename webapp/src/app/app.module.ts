@@ -10,7 +10,7 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { RoomBaseComponent } from './components/room-base/room-base.component';
 import { PatchworkDoodleModule } from './games/patchwork-doodle/patchwork-doodle.module';
-import { AngularFireEmulatorProviders } from './providers/angularfire-emulator.provider';
+import { AngularFireLocationProviders } from './providers/angularfire-location.provider';
 import { FirebaseAuthProvider } from './providers/firebase-auth.provider';
 import { LoggerModule } from './providers/logger-module.provider';
 import { ServiceInitializer } from './providers/service-initializer.provider';
@@ -36,7 +36,7 @@ import { TranslateModule } from './providers/translate-module.provider';
     providers: [
         ServiceInitializer,
         FirebaseAuthProvider,
-        ...AngularFireEmulatorProviders
+        ...AngularFireLocationProviders
     ],
     bootstrap: [AppComponent]
 })
