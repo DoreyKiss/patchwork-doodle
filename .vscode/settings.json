@@ -41,12 +41,20 @@
         "**/.hg": true,
         "**/CVS": true,
         "**/.DS_Store": true,
+        // Hide internal data and logs
         "webapp/.firebase": true,
-        "webapp/node_modules": true,
         "webapp/*.log": true,
+        // Hide libraries
+        "webapp/node_modules": true,
         "webapp/functions/lib": true,
         "webapp/functions/node_modules": true,
-        "**/*.spec.ts": true, // Hide tests
+        // Hide tests
+        "webapp/e2e": true,
+        "**/*.spec.ts": true,
+        // Hide rarely used configs
+        "webapp/karma.conf.js": true,
+        "webapp/.browserslistrc": true,
+        "**/package-lock.json": true
     },
     "terminal.integrated.cwd": "webapp",
     "restoreTerminals.terminals": [
