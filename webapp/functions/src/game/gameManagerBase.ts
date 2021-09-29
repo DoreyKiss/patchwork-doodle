@@ -83,10 +83,10 @@ export abstract class GameManagerBase {
         meta.players = unfalsifyObject(meta.players);
         meta.spectators = unfalsifyObject(meta.spectators);
 
-        const rPublic: DbPublicState = room.public ?? {
+        const pub: DbPublicState = room.public ?? {
             step: CommonGameSteps.lobby
         };
-        rPublic.readyStates = unfalsifyObject(rPublic.readyStates);
+        pub.readyStates = unfalsifyObject(pub.readyStates);
     }
 
     protected assertRoom(room: DbRoom, response: RoomResponse): boolean {

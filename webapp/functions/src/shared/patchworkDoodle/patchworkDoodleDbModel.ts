@@ -23,6 +23,7 @@ export interface PwdDbPublicState extends DbPublicState {
     board: string[];
     /** The index of the card the token is placed after. */
     tokenPosition: number;
+    lastDieRoll?: number;
 }
 
 export interface PwdDbMeta extends DbRoomMeta {
@@ -48,7 +49,9 @@ export enum PwdStep {
 }
 
 export interface PwdRules {
-    boardCardCount: number,
+    boardCardCount: number;
+    roundRemainingCards: number;
     drawingBoardSize: { width: number, height: number; };
     deckSize: number;
+    dieSize: number;
 }

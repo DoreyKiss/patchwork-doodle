@@ -62,9 +62,9 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             internal.discardPile = unfalsifyArray(internal.discardPile);
         }
 
-        const rPublic = room.public;
-        if (rPublic) {
-            rPublic.board = unfalsifyArray(rPublic.board);
+        const pub = room.public;
+        if (pub) {
+            pub.board = unfalsifyArray(pub.board);
         }
     }
 
@@ -80,22 +80,22 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             room.meta.players = remapRecord(room.meta.users, () => true);
             const players = room.meta.players;
 
+            // Init board
             const deck = this.createDeck(room.meta.rules.deckSize);
             const discardPile: string[] = [];
             const starterCardIds = this.draw(Object.keys(players).length, shuffleInPlace([...starterCards.map(x => x.id)]), []);
             const emptyBoard = new DrawingBoard(room.meta.rules).serializeBoard();
 
+            // Init states
             room.private = remapRecord(players, (_key, _value, index) => ({
                 serializedBoard: emptyBoard,
                 startingCard: starterCardIds[index],
                 doodledCards: []
             }));
-
             room.internal = {
                 deck: deck,
                 discardPile: discardPile
             };
-
             room.public = {
                 step: PwdStep.doodle_starting_card,
                 board: [],
@@ -103,7 +103,12 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
                 readyStates: remapRecord(players, () => false)
             };
 
-            this.prepareRound(room);
+            // Prepare round
+            const board = room.public.board;
+            const int = room.internal;
+            const cardCount = room.meta.rules.boardCardCount - board.length;
+            room.public.board = [...board, ...this.draw(cardCount, int.deck, int.discardPile)];
+            room.public.tokenPosition = 0;
 
             return room;
         });
@@ -117,22 +122,21 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             // TODO uncommented for test reasons
             // if (!this.assertPlayerNotReady(room, response)) { abort(); }
 
-            // const rInternal = room.internal as PwdDbInternalState;
-            const rPrivate = room.private[this.userId];
-            const rPublic = room.public;
+            const priv = room.private[this.userId];
+            const pub = room.public;
 
-            if (![PwdStep.doodle_starting_card, PwdStep.doodle_card].includes(rPublic.step as PwdStep)) {
+            if (![PwdStep.doodle_starting_card, PwdStep.doodle_card].includes(pub.step as PwdStep)) {
                 this.updateResponseError(response, 'Cannot doodle card in the current step!');
                 abort();
             }
 
-            if (!this.assertDoodledCardIsValid(rPublic, rPrivate, action)) {
+            if (!this.assertDoodledCardIsValid(pub, priv, action)) {
                 this.updateResponseError(response, 'Doodled card is not valid!');
                 abort();
             }
 
             const doodledCard = cardsById.get(action.cardId) as Card;
-            const doodleBoard = new DrawingBoard(room.meta.rules, rPrivate.serializedBoard);
+            const doodleBoard = new DrawingBoard(room.meta.rules, priv.serializedBoard);
 
             // TODO handle cut power
             const doodleResult = doodleBoard.tryDraw(doodledCard.display, action.x, action.y, action.rotationCount, action.isFlipped);
@@ -141,63 +145,73 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
                 abort();
             }
 
-            rPrivate.doodledCards.push({
+            priv.doodledCards.push({
                 originalCardId: action.cardId,
                 display: (doodleResult as DrawSuccess).display,
                 x: action.x,
                 y: action.y
             });
 
-            rPublic.readyStates[this.userId] = true;
-            rPrivate.serializedBoard = doodleBoard.serializeBoard();
+            pub.readyStates[this.userId] = true;
+            priv.serializedBoard = doodleBoard.serializeBoard();
 
-            if (Object.values(rPublic.readyStates).every(isReady => isReady)) {
-                // TODO handle if everyBody is ready
-                // this.log
+            if (Object.values(pub.readyStates).every(isReady => isReady)) {
+                this.drawStepFinished(room);
             }
 
             return room;
         });
     }
 
-    private assertDoodledCardIsValid(rPublic: PwdDbPublicState, rPrivate: PwdDbPrivateState, action: DoodleCardAction): boolean {
-        let validCards: string[] = [];
-        switch (rPublic.step) {
+    private drawStepFinished(room: PatchworkDoodleDbRoom) {
+        const pub = room.public;
+        switch (pub.step) {
             case PwdStep.doodle_starting_card:
-                validCards = [rPrivate.startingCard];
+                pub.step = PwdStep.doodle_card;
+                break;
+            case PwdStep.doodle_card:
+                pub.board.splice(pub.tokenPosition, 1);
+                pub.step = PwdStep.doodle_card;
+                break;
+            default:
+                throw new Error(`Invalid internal state after draw step: ${pub.step}`);
+        }
+
+        if (pub.board.length > room.meta.rules.roundRemainingCards) {
+            pub.lastDieRoll = this.random(room.meta.rules.deckSize);
+            pub.tokenPosition = (pub.tokenPosition + pub.lastDieRoll) % pub.board.length;
+        } else {
+            pub.step = PwdStep.partial_results;
+        }
+        pub.readyStates = remapRecord(pub.readyStates, () => false);
+    }
+
+    private assertDoodledCardIsValid(pub: PwdDbPublicState, priv: PwdDbPrivateState, action: DoodleCardAction): boolean {
+        let validCards: string[] = [];
+        switch (pub.step) {
+            case PwdStep.doodle_starting_card:
+                validCards = [priv.startingCard];
                 // TODO are powers valid here?
                 break;
             case PwdStep.doodle_card:
                 switch (action.power?.type) {
                     case 'neighbor':
                         validCards = [
-                            rPublic.board[rPublic.tokenPosition - 1 + rPublic.board.length % rPublic.board.length],
-                            rPublic.board[rPublic.tokenPosition + 1 % rPublic.board.length]
+                            pub.board[(pub.tokenPosition - 1 + pub.board.length) % pub.board.length],
+                            pub.board[(pub.tokenPosition + 1) % pub.board.length]
                         ];
                         break;
                     case 'one':
                         validCards = [singleTileCard.id];
                         break;
                     default:
-                        validCards = [rPublic.board[rPublic.tokenPosition]];
+                        validCards = [pub.board[pub.tokenPosition]];
                         break;
                 }
                 break;
         }
 
         return validCards.includes(action.cardId);
-    }
-
-    /**
-     * Place down 8 cards. Set the token to a random position
-     */
-    private prepareRound(room: PatchworkDoodleDbRoom): void {
-        const board = room.public.board;
-        const internal = room.internal;
-
-        const cardCount = room.meta.rules.boardCardCount - board.length;
-        room.public.board = [...board, ...this.draw(cardCount, internal.deck, internal.discardPile)];
-        room.public.tokenPosition = 0;
     }
 
     private draw<TCard>(count: number, deck: TCard[], discardPile: TCard[]): TCard[] {
@@ -225,8 +239,14 @@ export class PatchworkDoodleGameManager extends GameManagerBase {
             deck.push(possibleCards[i % possibleCards.length].id);
         }
         shuffleInPlace(deck);
-
         return deck;
     }
 
+    private random(maxExclusive: number): number;
+    private random(minInclusive: number, maxExclusive: number): number;
+    private random(...args: number[]): number {
+        const min = args.length === 2 ? args[0] : 0;
+        const max = args[args.length - 1];
+        return min + Math.floor(Math.random() * (max - min));
+    }
 }
